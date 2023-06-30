@@ -2,7 +2,7 @@ export const LOG_PIPE_TYPES = ['debug', 'error', 'info', 'log', 'trace', 'warn']
 export type LogPipeType = typeof LOG_PIPE_TYPES[number];
 export type LogPipe = (type: LogPipeType, ...args: any[]) => unknown[];
 
-const stack: Array<LogPipe> = [];
+const core: Array<LogPipe> = [];
 
 type ConsoleLogFn = (...args: any[]) => void;
 const noop: ConsoleLogFn = () => {/* do nothing. */};
@@ -18,15 +18,15 @@ const originalConsole: Record<LogPipeType, ConsoleLogFn> = {
 
 export function installLogPipe(pipe: LogPipe): void {
     overrideConsoleMethodsOnFirstPipe();
-    stack.push(pipe);
+    core.push(pipe);
 }
 
 export function uninstallLogPipe(pipe: LogPipe): void {
-    const pipeIndex = stack.lastIndexOf(pipe);
+    const pipeIndex = core.lastIndexOf(pipe);
     if (pipeIndex === -1) {
         throw new Error('Must be a top-level logger.');
     }
-    stack.splice(pipeIndex, 1);
+    core.splice(pipeIndex, 1);
     restoreOriginalConsoleMethodsOnLastPipe();
 }
 
@@ -38,8 +38,8 @@ function overrideConsoleMethodsOnFirstPipe(): void {
         originalConsole[type] = console[type] as ConsoleLogFn;
         console[type] = (...args: any[]): void => {
             let resultArgs = args;
-            for (let i = stack.length; --i >= 0;) {
-                const pipe = stack[i];
+            for (let i = core.length; --i >= 0;) {
+                const pipe = core[i];
                 resultArgs = pipe(type, ...resultArgs);
                 if ((resultArgs?.length ?? 0) === 0) {
                     // Log is suppressed.
@@ -52,7 +52,7 @@ function overrideConsoleMethodsOnFirstPipe(): void {
 }
 
 function restoreOriginalConsoleMethodsOnLastPipe(): void {
-    if (stack.length > 0) {
+    if (core.length > 0) {
         return;
     }
     if (originalConsole['debug'] === noop) {

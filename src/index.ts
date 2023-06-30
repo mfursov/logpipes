@@ -1,2 +1,2 @@
-export * from './stack';
-export * from './json';
+export * from './core';
+export * from './json-pipe';

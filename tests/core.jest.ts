@@ -1,7 +1,7 @@
 import {describe, expect, it} from '@jest/globals';
 import {installLogPipe, LOG_PIPE_TYPES, LogPipe, LogPipeType, uninstallLogPipe} from '../src';
 
-describe('LogPipe', () => {
+describe('LogPipes', () => {
 
     it('should install and uninstall log pipes to console methods', () => {
         let lastCalledPipeType: LogPipeType | undefined = undefined;

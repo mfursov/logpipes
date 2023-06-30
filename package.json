@@ -1,7 +1,7 @@
 {
   "name": "logpipes",
   "description": "Data transformation pipes for console.log",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "license": "Apache-2.0",
   "main": "dist/index.js",
@@ -31,7 +31,7 @@
     "@typescript-eslint/parser": "^5.60.1",
     "eslint": "^8.43.0",
     "rimraf": "^5.0.1",
-    "ts-jest": "^29.1.0",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.1.6"
   }
 }
