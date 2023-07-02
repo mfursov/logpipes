@@ -15,7 +15,7 @@ export const DEFAULT_SIMPLIFY_JSON_OPTIONS: Readonly<SimplifyJsonOptions> = {
     maxRecursionLevel: 10,
     maxArrayLength: 100,
     maxObjectProperties: 100,
-    isIgnoredProperty: propertyName => propertyName.startsWith('@'),
+    isIgnoredProperty: () => false,
 
     depthLimitValue: '[Depth limit ~]',
     circularReferenceValue: '[Circular ~]',
