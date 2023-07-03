@@ -21,7 +21,7 @@ Produces a one-liner string with a serialized JSON:
 ### JsonStringifyPipe options
 
 ```typescript
-   /**
+/**
  * Maximum depth level in JSON before overriding the leaf value with a @depthLimitValue.
  * Default: 10.
  */
