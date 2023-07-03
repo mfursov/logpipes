@@ -1,10 +1,20 @@
 {
   "description": "Data transformation pipes for console.log",
   "version": "0.0.4",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "name": "logpipes",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf ./dist",
+    "lint": "eslint . --ext .ts",
+    "test": "jest --runInBand"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "^5.60.1",
-    "eslint": "^8.43.0",
+    "eslint": "^8.44.0",
     "rimraf": "^5.0.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.1.6"
@@ -23,15 +33,5 @@
     "console.log",
     "console.debug"
   ],
-  "license": "Apache-2.0",
-  "main": "dist/index.js",
-  "name": "logpipes",
-  "private": false,
-  "scripts": {
-    "build": "tsc",
-    "clean": "rimraf ./dist",
-    "lint": "eslint . --ext .ts",
-    "test": "jest --runInBand"
-  },
   "types": "dist/index.d.ts"
 }

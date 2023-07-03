@@ -1,7 +1,7 @@
-import {LogPipe} from './core';
-import {DEFAULT_SIMPLIFY_JSON_OPTIONS, simplifyJson, SimplifyJsonOptions, simplifyValue} from './json-simplifier';
+import {LogPipe} from './ConsoleOverrides';
+import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from './JsonSimpiler';
 
-export interface JsonPipeOptions extends SimplifyJsonOptions {
+export interface JsonPipeOptions extends JsonSimplifierOptions {
     messagePropertyName: string;
     getObjectArgumentMessageToken: (argumentIndex: number, argument: object) => string;
     undefinedMessageValue: undefined | string;
@@ -10,7 +10,7 @@ export interface JsonPipeOptions extends SimplifyJsonOptions {
 }
 
 export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions> = {
-    ...DEFAULT_SIMPLIFY_JSON_OPTIONS,
+    ...DEFAULT_JSON_SIMPLIFIER_OPTIONS,
     messagePropertyName: '@message',
     isTopLevelProperty: propertyName => propertyName.startsWith('@'),
     isIgnoredProperty: () => false,
@@ -39,7 +39,7 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Log
                 }
                 messageToken = options.getObjectArgumentMessageToken(messageArgIndex, arg);
                 // Add top-level properties to the list of ignored when calling convertToSafeJson.
-                const simplifyOptions: SimplifyJsonOptions = {
+                const simplifyOptions: JsonSimplifierOptions = {
                     ...options,
                     isIgnoredProperty: name => options.isIgnoredProperty(name) || name in topLevelProperties
                 };

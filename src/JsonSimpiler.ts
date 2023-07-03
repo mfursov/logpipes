@@ -1,4 +1,4 @@
-export interface SimplifyJsonOptions {
+export interface JsonSimplifierOptions {
     maxRecursionLevel: number;
     maxArrayLength: number;
     maxObjectProperties: number;
@@ -11,7 +11,7 @@ export interface SimplifyJsonOptions {
     symbolValue: string;
 }
 
-export const DEFAULT_SIMPLIFY_JSON_OPTIONS: Readonly<SimplifyJsonOptions> = {
+export const DEFAULT_JSON_SIMPLIFIER_OPTIONS: Readonly<JsonSimplifierOptions> = {
     maxRecursionLevel: 10,
     maxArrayLength: 100,
     maxObjectProperties: 100,
@@ -36,11 +36,11 @@ type SimplifiedType = object | null | string | undefined | number | boolean | bi
  * A 'simplified' object is an object that can be restored into the original form using JSON.parse(JSON.stringify(obj)).
  */
 export function simplifyJson(value: unknown,
-                             inputOptions: Partial<SimplifyJsonOptions> = {},
+                             inputOptions: Partial<JsonSimplifierOptions> = {},
                              recursionLevel = 0,
                              visitedObjects = new Set<object>): SimplifiedType {
 
-    const options = {...DEFAULT_SIMPLIFY_JSON_OPTIONS, ...inputOptions};
+    const options = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, ...inputOptions};
     if (recursionLevel > options.maxRecursionLevel) {
         return options.depthLimitValue;
     }
@@ -86,6 +86,7 @@ interface SimplifyValueOptions {
     symbolValue: string;
 }
 
+/** Simplifies a single property value with no recursion. */
 export function simplifyValue(value: unknown, options: Partial<SimplifyValueOptions> = {}): SimplifiedType {
     if (value === null || value === undefined) {
         return value;
@@ -106,9 +107,9 @@ export function simplifyValue(value: unknown, options: Partial<SimplifyValueOpti
             }
             return value;
         case 'function':
-            return options.functionValue || DEFAULT_SIMPLIFY_JSON_OPTIONS.functionValue;
+            return options.functionValue || DEFAULT_JSON_SIMPLIFIER_OPTIONS.functionValue;
         case 'symbol':
-            return options.symbolValue || DEFAULT_SIMPLIFY_JSON_OPTIONS.symbolValue;
+            return options.symbolValue || DEFAULT_JSON_SIMPLIFIER_OPTIONS.symbolValue;
         case 'object':
             if (value instanceof Set) {
                 return [...value.keys()];

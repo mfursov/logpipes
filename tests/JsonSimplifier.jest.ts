@@ -1,8 +1,7 @@
 // noinspection JSPrimitiveTypeWrapperUsage
 
 import {describe, expect, it} from '@jest/globals';
-import {DEFAULT_SIMPLIFY_JSON_OPTIONS, simplifyJson, simplifyValue} from '../src/json-simplifier';
-import {DEFAULT_JSON_PIPE_OPTIONS} from '../src';
+import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, simplifyJson, simplifyValue} from '../src';
 
 describe('JsonSimplifier', () => {
 
@@ -18,7 +17,7 @@ describe('JsonSimplifier', () => {
         it('correctly handles functions types', () => {
             const obj = {'foo': (): boolean => true};
             const result = simplifyJson(obj);
-            expect(result).toEqual({'foo': DEFAULT_SIMPLIFY_JSON_OPTIONS.functionValue});
+            expect(result).toEqual({'foo': DEFAULT_JSON_SIMPLIFIER_OPTIONS.functionValue});
         });
 
         it('correctly handles undefined values', () => {
@@ -38,38 +37,38 @@ describe('JsonSimplifier', () => {
             const obj = {} as Record<string, object>;
             obj['ref'] = obj;
             const result = simplifyJson(obj);
-            expect(result).toEqual({'ref': DEFAULT_SIMPLIFY_JSON_OPTIONS.circularReferenceValue});
+            expect(result).toEqual({'ref': DEFAULT_JSON_SIMPLIFIER_OPTIONS.circularReferenceValue});
         });
 
         it('resolves circular references, indirect reference', () => {
             const obj = {} as Record<string, object>;
             obj['ref'] = {obj};
             const result = simplifyJson(obj);
-            expect(result).toEqual({'ref': {'obj': DEFAULT_SIMPLIFY_JSON_OPTIONS.circularReferenceValue}});
+            expect(result).toEqual({'ref': {'obj': DEFAULT_JSON_SIMPLIFIER_OPTIONS.circularReferenceValue}});
         });
 
         it('resolves circular references, reference in array', () => {
             const obj = {} as Record<string, object>;
             obj['array'] = [obj];
             const result = simplifyJson(obj);
-            expect(result).toEqual({'array': [DEFAULT_SIMPLIFY_JSON_OPTIONS.circularReferenceValue]});
+            expect(result).toEqual({'array': [DEFAULT_JSON_SIMPLIFIER_OPTIONS.circularReferenceValue]});
         });
 
         it('handles too many object properties', () => {
             const obj = {} as Record<string, unknown>;
-            for (let i = 0; i < DEFAULT_SIMPLIFY_JSON_OPTIONS.maxObjectProperties; i++) {
+            for (let i = 0; i < DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxObjectProperties; i++) {
                 obj[`${i}`] = i;
             }
             let result = simplifyJson(obj);
             expect(result).toEqual(obj);
 
             result = simplifyJson({...obj, 'overflowField': 1});
-            expect(result).toEqual(`[Object, properties: ${DEFAULT_JSON_PIPE_OPTIONS.maxObjectProperties + 1} ~]`);
+            expect(result).toEqual(`[Object, properties: ${DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxObjectProperties + 1} ~]`);
         });
 
         it('handles too many array elements', () => {
             const array = [];
-            for (let i = 0; i < DEFAULT_JSON_PIPE_OPTIONS.maxArrayLength; i++) {
+            for (let i = 0; i < DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxArrayLength; i++) {
                 array[i] = i;
             }
             let result = simplifyJson(array);
@@ -77,11 +76,11 @@ describe('JsonSimplifier', () => {
 
             array.push('overflow');
             result = simplifyJson(array);
-            expect(result).toEqual(`[Array, length: ${DEFAULT_JSON_PIPE_OPTIONS.maxArrayLength + 1} ~]`);
+            expect(result).toEqual(`[Array, length: ${DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxArrayLength + 1} ~]`);
         });
 
         it('handles too deep recursion for objects', () => {
-            const options = {...DEFAULT_JSON_PIPE_OPTIONS, maxRecursionLevel: 3};
+            const options = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, maxRecursionLevel: 3};
             let object: Record<string, unknown> = {};
             const topLevelObject = object;
             for (let i = 0; i < options.maxRecursionLevel; i++) {
@@ -99,7 +98,7 @@ describe('JsonSimplifier', () => {
         });
 
         it('handles too deep recursion for arrays', () => {
-            const options = {...DEFAULT_JSON_PIPE_OPTIONS, maxRecursionLevel: 3};
+            const options = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, maxRecursionLevel: 3};
             let array: (object | string)[] = [];
             const topLevelArray = array;
             for (let i = 0; i < options.maxRecursionLevel; i++) {
@@ -201,5 +200,4 @@ describe('JsonSimplifier', () => {
             expect(result).toEqual({'k1': 'v1', 'k2': 'v2'});
         });
     });
-
 });
