@@ -1,19 +1,74 @@
 export interface JsonSimplifierOptions {
-    maxRecursionLevel: number;
+    /**
+     * Maximum depth level in JSON before overriding the leaf value with a @depthLimitValue.
+     * Default: 10.
+     */
+    maxDepthLimit: number;
+
+    /**
+     * All arrays with a number of elements greater the limit are serialized as a @arrayLengthLimitValue.
+     * Default: 100.
+     */
     maxArrayLength: number;
+
+    /**
+     * All objects with a number of properties greater the limit are serialized as a @objectPropertyCountLimitValue.
+     * Default: 100.
+     */
     maxObjectPropertyCount: number;
+
+    /**
+     * Excludes the property from the result.
+     * Default: no properties are excluded.
+     */
     isIgnoredProperty: (propertyName: string) => boolean;
+
+    /**
+     * Replaces property value with another value.
+     * Can be used for value masking.
+     * Default: no properties are replaced.
+     */
     replacePropertyValue: (propertyName: string, propertyValue: unknown) => unknown;
+
+    /**
+     * A value used to stop recursion when @maxDepthLimit is reached.
+     * Default: '[Depth limit ~]'.
+     */
     depthLimitValue: string;
+
+    /**
+     * A value used to replace arrays with a number of elements > @maxArrayLength
+     * Default: '[Array, length: $length ~]'.
+     */
     arrayLengthLimitValue: string;
+
+    /**
+     * A value used to replace objects with a number of properties > @maxObjectPropertyCount.
+     * Default: '[Object, properties: $count ~]'.
+     */
     objectPropertyCountLimitValue: string;
+
+    /**
+     * A value used to replace a circular reference.
+     * Default: '[Circular ~]'.
+     */
     circularReferenceValue: string;
+
+    /**
+     * A value used to replace functions.
+     * Default: '[Function ~]'.
+     **/
     functionValue: string;
+
+    /**
+     * A value used to replace symbol values.
+     * Default: '[Symbol ~]'.
+     **/
     symbolValue: string;
 }
 
 export const DEFAULT_JSON_SIMPLIFIER_OPTIONS: Readonly<JsonSimplifierOptions> = {
-    maxRecursionLevel: 10,
+    maxDepthLimit: 10,
     maxArrayLength: 100,
     maxObjectPropertyCount: 100,
     isIgnoredProperty: () => false,
@@ -42,7 +97,7 @@ export function simplifyJson(value: unknown,
                              visitedObjects = new Set<object>): SimplifiedType {
 
     const options = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, ...inputOptions};
-    if (recursionLevel > options.maxRecursionLevel) {
+    if (recursionLevel > options.maxDepthLimit) {
         return options.depthLimitValue;
     }
     value = simplifyValue(value);

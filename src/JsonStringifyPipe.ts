@@ -1,5 +1,5 @@
 import {LogLevel, LogPipe} from './ConsoleOverrides';
-import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from './JsonSimpiler';
+import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from './JsonSimplifier';
 
 export interface JsonPipeOptions extends JsonSimplifierOptions {
     messagePropertyName: string;
@@ -77,7 +77,7 @@ export function createJsonStringifyPipe(inputOptions: Partial<JsonPipeOptions> =
         if (options.timestampPropertyName) {
             resultJson[options.timestampPropertyName] = options.timestampPropertyFormatter(Date.now());
         }
-        return [level, JSON.stringify(resultJson)];
+        return [JSON.stringify(resultJson)];
     };
 }
 

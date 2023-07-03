@@ -1,6 +1,6 @@
 export const LOG_LEVEL = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
 export type LogLevel = typeof LOG_LEVEL[number];
-export type LogPipe = (type: LogLevel, ...args: any[]) => unknown[];
+export type LogPipe = (level: LogLevel, ...args: any[]) => unknown[];
 
 const consoleOverrides: Array<LogPipe> = [];
 
@@ -16,34 +16,51 @@ const originalConsole: Record<LogLevel, ConsoleLogFn> = {
     warn: noop
 };
 
-export function installLogPipe(pipe: LogPipe): void {
-    overrideConsoleMethodsOnFirstPipe();
-    consoleOverrides.push(pipe);
+/**
+ *  Adds the pipe to the list of active console overrides.
+ *  The pipes are called in the order they are installed.
+ */
+export function installConsoleOverride(pipe: LogPipe | Array<LogPipe>): void {
+    initializeConsoleOverrideContextOnFirstUse();
+    const pipes = Array.isArray(pipe) ? pipe : [pipe];
+    consoleOverrides.push(...pipes);
 }
 
-export function uninstallLogPipe(pipe: LogPipe): void {
-    const pipeIndex = consoleOverrides.lastIndexOf(pipe);
-    if (pipeIndex === -1) {
-        throw new Error('Must be a top-level logger.');
+/** Removes the given pipe from the active console overrides. */
+export function uninstallConsoleOverride(pipe: LogPipe | Array<LogPipe>): void {
+    const pipes = Array.isArray(pipe) ? pipe : [pipe];
+    for (const pipe of pipes) {
+        for (let pipeIndex = consoleOverrides.indexOf(pipe); pipeIndex >= 0; pipeIndex = consoleOverrides.indexOf(pipe)) {
+            consoleOverrides.splice(pipeIndex, 1);
+        }
     }
-    consoleOverrides.splice(pipeIndex, 1);
-    restoreOriginalConsoleMethodsOnLastPipe();
+    destroyConsoleOverrideContextOnLastUse();
 }
 
-function overrideConsoleMethodsOnFirstPipe(): void {
+/** Uninstall all existing console overrides. */
+export function uninstallAllConsoleOverrides(): void {
+    for (const pipe of [...consoleOverrides]) {
+        uninstallConsoleOverride(pipe);
+    }
+}
+
+/** Returns a list of all console overrides. */
+export function getConsoleOverrides(): Array<LogPipe> {
+    return [...consoleOverrides];
+}
+
+function initializeConsoleOverrideContextOnFirstUse(): void {
     if (originalConsole['debug'] !== noop) {
-        return;
+        return; // Already installed.
     }
     for (const level of LOG_LEVEL) {
         originalConsole[level] = console[level] as ConsoleLogFn;
         console[level] = (...args: any[]): void => {
             let resultArgs = args;
-            for (let i = consoleOverrides.length; --i >= 0;) {
-                const pipe = consoleOverrides[i];
+            for (const pipe of consoleOverrides) {
                 resultArgs = pipe(level, ...resultArgs);
                 if ((resultArgs?.length ?? 0) === 0) {
-                    // Log is suppressed.
-                    return;
+                    return; // Log is suppressed.
                 }
             }
             originalConsole[level](...resultArgs);
@@ -51,12 +68,12 @@ function overrideConsoleMethodsOnFirstPipe(): void {
     }
 }
 
-function restoreOriginalConsoleMethodsOnLastPipe(): void {
+function destroyConsoleOverrideContextOnLastUse(): void {
     if (consoleOverrides.length > 0) {
-        return;
+        return; // Too early to restore: there are overrides.
     }
     if (originalConsole['debug'] === noop) {
-        throw new Error('No cached console methods to restore');
+        return; // Nothing to restore: not overridden.
     }
     for (const name of LOG_LEVEL) {
         console[name] = originalConsole[name];
