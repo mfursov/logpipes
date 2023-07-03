@@ -56,14 +56,14 @@ describe('JsonSimplifier', () => {
 
         it('handles too many object properties', () => {
             const obj = {} as Record<string, unknown>;
-            for (let i = 0; i < DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxObjectProperties; i++) {
+            for (let i = 0; i < DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxObjectPropertyCount; i++) {
                 obj[`${i}`] = i;
             }
             let result = simplifyJson(obj);
             expect(result).toEqual(obj);
 
             result = simplifyJson({...obj, 'overflowField': 1});
-            expect(result).toEqual(`[Object, properties: ${DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxObjectProperties + 1} ~]`);
+            expect(result).toEqual(`[Object, properties: ${DEFAULT_JSON_SIMPLIFIER_OPTIONS.maxObjectPropertyCount + 1} ~]`);
         });
 
         it('handles too many array elements', () => {
@@ -146,6 +146,12 @@ describe('JsonSimplifier', () => {
         it('simplifyValue is used', () => {
             const result = simplifyJson(new Set([1, true, '3']));
             expect(result).toEqual([1, true, '3']);
+        });
+
+        it('calls replacePropertyValue to replace properties', () => {
+            const result = simplifyJson({username: 'vasya2001', password: '12345'},
+                {replacePropertyValue: (key, value) => key.toLowerCase() === 'password' ? '***' : value});
+            expect(result).toEqual({username: 'vasya2001', password: '***'});
         });
     });
 

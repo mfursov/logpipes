@@ -1,12 +1,13 @@
 export interface JsonSimplifierOptions {
     maxRecursionLevel: number;
     maxArrayLength: number;
-    maxObjectProperties: number;
+    maxObjectPropertyCount: number;
     isIgnoredProperty: (propertyName: string) => boolean;
+    replacePropertyValue: (propertyName: string, propertyValue: unknown) => unknown;
     depthLimitValue: string;
-    circularReferenceValue: string;
     arrayLengthLimitValue: string;
     objectPropertyCountLimitValue: string;
+    circularReferenceValue: string;
     functionValue: string;
     symbolValue: string;
 }
@@ -14,13 +15,13 @@ export interface JsonSimplifierOptions {
 export const DEFAULT_JSON_SIMPLIFIER_OPTIONS: Readonly<JsonSimplifierOptions> = {
     maxRecursionLevel: 10,
     maxArrayLength: 100,
-    maxObjectProperties: 100,
+    maxObjectPropertyCount: 100,
     isIgnoredProperty: () => false,
-
+    replacePropertyValue: (_, value) => value,
     depthLimitValue: '[Depth limit ~]',
-    circularReferenceValue: '[Circular ~]',
     arrayLengthLimitValue: '[Array, length: $length ~]',
     objectPropertyCountLimitValue: '[Object, properties: $count ~]',
+    circularReferenceValue: '[Circular ~]',
     functionValue: '[Function ~]',
     symbolValue: '[Symbol ~]',
 };
@@ -59,26 +60,31 @@ export function simplifyJson(value: unknown,
         return value.map(v => simplifyJson(v, options, recursionLevel + 1, visitedObjects));
     }
     const entries = Object.entries(value);
-    if (entries.length > options.maxObjectProperties) {
+    if (entries.length > options.maxObjectPropertyCount) {
         return options.objectPropertyCountLimitValue.replace('$count', `${entries.length}`);
     }
-    const result: Record<string, unknown> = {};
+    const simplifiedJson: Record<string, unknown> = {};
     for (const [propertyName, propertyValue] of entries) {
         if (recursionLevel === 0 && options.isIgnoredProperty(propertyName)) {
             continue;// Ignore the property. The property was moved to the top level.
         }
-        result[propertyName] = simplifyJson(propertyValue, options, recursionLevel + 1, visitedObjects);
+        simplifiedJson[propertyName] = simplifyJson(propertyValue, options, recursionLevel + 1, visitedObjects);
     }
     // Handle special properties.
     for (const propertyName of ERROR_OBJECT_PROPERTIES) {
-        if (!result[propertyName] && !options.isIgnoredProperty(propertyName)) {
+        if (!simplifiedJson[propertyName] && !options.isIgnoredProperty(propertyName)) {
             const propertyValue = (value as Record<string, unknown>)[propertyName];
             if (propertyValue !== undefined) {
-                result[propertyName] = simplifyJson(propertyValue, options, recursionLevel + 1, visitedObjects);
+                simplifiedJson[propertyName] = simplifyJson(propertyValue, options, recursionLevel + 1, visitedObjects);
             }
         }
     }
-    return result;
+    if (options.replacePropertyValue !== DEFAULT_JSON_SIMPLIFIER_OPTIONS.replacePropertyValue) {
+        for (const [propertyName, propertyValue] of Object.entries(simplifiedJson)) {
+            simplifiedJson[propertyName] = options.replacePropertyValue(propertyName, propertyValue);
+        }
+    }
+    return simplifiedJson;
 }
 
 interface SimplifyValueOptions {
