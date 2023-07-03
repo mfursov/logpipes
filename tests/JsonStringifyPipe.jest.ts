@@ -1,5 +1,5 @@
 import {describe, expect, it} from '@jest/globals';
-import {createJsonPipe, pickTopLevelProperties} from '../src';
+import {createJsonStringifyPipe, JsonPipeOptions, LogPipe, pickTopLevelProperties} from '../src';
 
 describe('JsonPipe', () => {
 
@@ -34,89 +34,110 @@ describe('JsonPipe', () => {
         });
     });
 
-    describe('createJsonPipe', () => {
-        it('creates jsonPipe with default options', () => {
-            const pipe = createJsonPipe();
+    describe('createJsonStringifyPipe', () => {
+        function createJsonStringifyPipeNoAttributes(options: Partial<JsonPipeOptions> = {}): LogPipe {
+            return createJsonStringifyPipe({...options, levelPropertyName: null, timestampPropertyName: null});
+        }
+
+        it('creates jsonStringifyPipe with default options', () => {
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', {});
-            expect(result).toEqual(['log', `{"@message":"$1","$1":{}}`]);
+            expect(result).toEqual(['log', `{"message":"$1","$1":{}}`]);
         });
 
         it('empty log call results to an empty json with no message', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log');
             expect(result).toEqual(['log', `{}`]);
         });
 
         it('a log call with an empty object results to a json with a message', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', {});
-            expect(result).toEqual(['log', `{"@message":"$1","$1":{}}`]);
+            expect(result).toEqual(['log', `{"message":"$1","$1":{}}`]);
         });
 
         it('a log call with an empty array results to a json with a message', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', []);
-            expect(result).toEqual(['log', `{"@message":"$1","$1":[]}`]);
+            expect(result).toEqual(['log', `{"message":"$1","$1":[]}`]);
         });
 
         it('null parameter processed as a space separated null', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', 'Hello,', null);
-            expect(result).toEqual(['log', `{"@message":"Hello, null"}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, null"}`]);
         });
 
         it('undefined parameter processed as a space separated undefined', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', 'Hello,', undefined);
-            expect(result).toEqual(['log', `{"@message":"Hello, undefined"}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, undefined"}`]);
         });
 
         it('boolean parameter processed as a space separated boolean', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', 'Hello,', true);
-            expect(result).toEqual(['log', `{"@message":"Hello, true"}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, true"}`]);
         });
 
         it('number parameter processed as a space separated number', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', 'Hello,', 42);
-            expect(result).toEqual(['log', `{"@message":"Hello, 42"}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, 42"}`]);
         });
 
         it('string parameter processed as a space separated string', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', 'Hello,', 'World');
-            expect(result).toEqual(['log', `{"@message":"Hello, World"}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, World"}`]);
         });
 
         it('assigns continues indexes only for object properties', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', '1', {a: 'a'}, '2', 3, {'b': 'b'});
-            expect(result).toEqual(['log', `{"@message":"1 $1 2 3 $2","$1":{"a":"a"},"$2":{"b":"b"}}`]);
+            expect(result).toEqual(['log', `{"message":"1 $1 2 3 $2","$1":{"a":"a"},"$2":{"b":"b"}}`]);
         });
 
         it('simplifyValue is used', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', 'Hello,', new Set([1, true, '3']));
-            expect(result).toEqual(['log', `{"@message":"Hello, $1","$1":[1,true,"3"]}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, $1","$1":[1,true,"3"]}`]);
         });
 
         it('supports top level properties with a default matcher', () => {
-            const pipe = createJsonPipe();
+            const pipe = createJsonStringifyPipeNoAttributes();
             const result = pipe('log', 'Hello,', {'@world': 'World'});
-            expect(result).toEqual(['log', `{"@message":"Hello, $1","@world":"World","$1":{}}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, $1","@world":"World","$1":{}}`]);
         });
 
         it('supports top level properties with a custom matcher', () => {
-            const pipe = createJsonPipe({isTopLevelProperty: name => name.startsWith('#')});
+            const pipe = createJsonStringifyPipeNoAttributes({isTopLevelProperty: name => name.startsWith('#')});
             const result = pipe('log', 'Hello,', {'#world': 'World'});
-            expect(result).toEqual(['log', `{"@message":"Hello, $1","#world":"World","$1":{}}`]);
+            expect(result).toEqual(['log', `{"message":"Hello, $1","#world":"World","$1":{}}`]);
         });
 
-        it(`top level properties can't overwrite built-in properties (like @message)`, () => {
-            const pipe = createJsonPipe();
-            const result = pipe('log', 'Hello,', {'@message': 'World'});
-            expect(result).toEqual(['log', `{"@message":"Hello, $1","$1":{"@message":"World"}}`]);
+        it(`top level properties can't overwrite built-in properties (like 'message')`, () => {
+            const pipe = createJsonStringifyPipeNoAttributes();
+            const result = pipe('log', 'Hello,', {'message': 'World'});
+            expect(result).toEqual(['log', `{"message":"Hello, $1","$1":{"message":"World"}}`]);
+        });
+
+        it(`adds @timestamp and @level`, () => {
+            const pipe = createJsonStringifyPipe({timestampPropertyFormatter: () => 'formatted-timestamp'});
+            const result = pipe('log', 'Hello');
+            expect(result).toEqual(['log', `{"message":"Hello","@level":"log","@timestamp":"formatted-timestamp"}`]);
+        });
+
+        it(`support custom of @timestamp and @level properties`, () => {
+            const pipe = createJsonStringifyPipe({
+                levelPropertyName: '@category',
+                levelPropertyFormatter: level => `[${level.toUpperCase()}]`,
+                timestampPropertyName: '@date',
+                timestampPropertyFormatter: () => 'formatted-timestamp'
+            });
+            const result = pipe('debug', 'Hello');
+            expect(result).toEqual(['debug', `{"message":"Hello","@category":"[DEBUG]","@date":"formatted-timestamp"}`]);
         });
     });
 });

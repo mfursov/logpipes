@@ -1,33 +1,47 @@
-import {LogPipe} from './ConsoleOverrides';
+import {LogLevel, LogPipe} from './ConsoleOverrides';
 import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from './JsonSimpiler';
 
 export interface JsonPipeOptions extends JsonSimplifierOptions {
     messagePropertyName: string;
+
+    timestampPropertyName: string | null;
+    timestampPropertyFormatter: (timeInMillis: number) => string;
+
+    levelPropertyName: string | null;
+    levelPropertyFormatter: (level: LogLevel) => string;
+
     getObjectArgumentMessageToken: (argumentIndex: number, argument: object) => string;
+
     undefinedMessageValue: undefined | string;
     isTopLevelProperty: (propertyName: string) => boolean;
-    isIgnoredProperty: (propertyName: string) => boolean;
 }
 
 export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions> = {
     ...DEFAULT_JSON_SIMPLIFIER_OPTIONS,
-    messagePropertyName: '@message',
+    messagePropertyName: 'message',
+
+    timestampPropertyName: '@timestamp',
+    timestampPropertyFormatter: timeInMillis => new Date(timeInMillis).toISOString(),
+
+    levelPropertyName: '@level',
+    levelPropertyFormatter: level => level,
+
     isTopLevelProperty: propertyName => propertyName.startsWith('@'),
     isIgnoredProperty: () => false,
     getObjectArgumentMessageToken: argumentIndex => `$${argumentIndex + 1}`,
     undefinedMessageValue: undefined,
 };
 
-export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): LogPipe {
+export function createJsonStringifyPipe(inputOptions: Partial<JsonPipeOptions> = {}): LogPipe {
     const options: JsonPipeOptions = {...DEFAULT_JSON_PIPE_OPTIONS, ...inputOptions};
     const topLevelPickerOptions: PickTopLevelPropertiesOptions = {
         isTopLevelProperty: options.isTopLevelProperty,
         ignoredPropertyNames: [options.messagePropertyName],
     };
-    return (type, ...args) => {
-        const result: Record<string, unknown> = {};
+    return (level, ...args) => {
+        const resultJson: Record<string, unknown> = {};
         let message: string | undefined = undefined;
-        result[options.messagePropertyName] = undefined; // Set it first, so it will be the first property in JSON.
+        resultJson[options.messagePropertyName] = undefined; // Set it first, so it will be the first property in JSON.
         let messageArgIndex = 0;
         for (let argIndex = 0; argIndex < args.length; argIndex++) {
             const arg = simplifyValue(args[argIndex]);
@@ -35,7 +49,7 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Log
             if (typeof arg === 'object' && arg !== null) {
                 const topLevelProperties = pickTopLevelProperties(arg, topLevelPickerOptions);
                 for (const [topLevelPropertyName, topLevelPropertyValue] of Object.entries(topLevelProperties)) {
-                    result[topLevelPropertyName] = topLevelPropertyValue;
+                    resultJson[topLevelPropertyName] = topLevelPropertyValue;
                 }
                 messageToken = options.getObjectArgumentMessageToken(messageArgIndex, arg);
                 // Add top-level properties to the list of ignored when calling convertToSafeJson.
@@ -43,7 +57,7 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Log
                     ...options,
                     isIgnoredProperty: name => options.isIgnoredProperty(name) || name in topLevelProperties
                 };
-                result[messageToken] = simplifyJson(arg, simplifyOptions);
+                resultJson[messageToken] = simplifyJson(arg, simplifyOptions);
                 messageArgIndex++;
             } else if (arg === undefined) {
                 if (options.undefinedMessageValue !== undefined) {
@@ -55,9 +69,15 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Log
             message = message === undefined ? `${messageToken}` : `${message} ${messageToken}`;
         }
         if (message) {
-            result[options.messagePropertyName] = message;
+            resultJson[options.messagePropertyName] = message;
         }
-        return [type, JSON.stringify(result)];
+        if (options.levelPropertyName) {
+            resultJson[options.levelPropertyName] = options.levelPropertyFormatter(level);
+        }
+        if (options.timestampPropertyName) {
+            resultJson[options.timestampPropertyName] = options.timestampPropertyFormatter(Date.now());
+        }
+        return [level, JSON.stringify(resultJson)];
     };
 }
 

@@ -1,13 +1,13 @@
-export const LOG_PIPE_TYPES = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
-export type LogPipeType = typeof LOG_PIPE_TYPES[number];
-export type LogPipe = (type: LogPipeType, ...args: any[]) => unknown[];
+export const LOG_LEVEL = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
+export type LogLevel = typeof LOG_LEVEL[number];
+export type LogPipe = (type: LogLevel, ...args: any[]) => unknown[];
 
 const consoleOverrides: Array<LogPipe> = [];
 
 type ConsoleLogFn = (...args: any[]) => void;
 const noop: ConsoleLogFn = () => {/* do nothing. */};
 
-const originalConsole: Record<LogPipeType, ConsoleLogFn> = {
+const originalConsole: Record<LogLevel, ConsoleLogFn> = {
     debug: noop,
     error: noop,
     info: noop,
@@ -34,19 +34,19 @@ function overrideConsoleMethodsOnFirstPipe(): void {
     if (originalConsole['debug'] !== noop) {
         return;
     }
-    for (const type of LOG_PIPE_TYPES) {
-        originalConsole[type] = console[type] as ConsoleLogFn;
-        console[type] = (...args: any[]): void => {
+    for (const level of LOG_LEVEL) {
+        originalConsole[level] = console[level] as ConsoleLogFn;
+        console[level] = (...args: any[]): void => {
             let resultArgs = args;
             for (let i = consoleOverrides.length; --i >= 0;) {
                 const pipe = consoleOverrides[i];
-                resultArgs = pipe(type, ...resultArgs);
+                resultArgs = pipe(level, ...resultArgs);
                 if ((resultArgs?.length ?? 0) === 0) {
                     // Log is suppressed.
                     return;
                 }
             }
-            originalConsole[type](...resultArgs);
+            originalConsole[level](...resultArgs);
         };
     }
 }
@@ -58,7 +58,7 @@ function restoreOriginalConsoleMethodsOnLastPipe(): void {
     if (originalConsole['debug'] === noop) {
         throw new Error('No cached console methods to restore');
     }
-    for (const name of LOG_PIPE_TYPES) {
+    for (const name of LOG_LEVEL) {
         console[name] = originalConsole[name];
         originalConsole[name] = noop;
     }
