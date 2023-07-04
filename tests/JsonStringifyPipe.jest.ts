@@ -123,21 +123,21 @@ describe('JsonPipe', () => {
             expect(result).toEqual([`{"message":"Hello, $1","$1":{"message":"World"}}`]);
         });
 
-        it(`adds @timestamp and @level`, () => {
+        it(`adds '@timestamp' and 'level'`, () => {
             const pipe = createJsonStringifyPipe({timestampPropertyFormatter: () => 'formatted-timestamp'});
             const result = pipe('log', 'Hello');
-            expect(result).toEqual([`{"message":"Hello","@level":"log","@timestamp":"formatted-timestamp"}`]);
+            expect(result).toEqual([`{"message":"Hello","level":"log","@timestamp":"formatted-timestamp"}`]);
         });
 
-        it(`support custom of @timestamp and @level properties`, () => {
+        it(`support custom of '@timestamp' and 'level' properties`, () => {
             const pipe = createJsonStringifyPipe({
-                levelPropertyName: '@category',
+                levelPropertyName: 'category',
                 levelPropertyFormatter: level => `[${level.toUpperCase()}]`,
-                timestampPropertyName: '@date',
+                timestampPropertyName: 'date',
                 timestampPropertyFormatter: () => 'formatted-timestamp'
             });
             const result = pipe('debug', 'Hello');
-            expect(result).toEqual([`{"message":"Hello","@category":"[DEBUG]","@date":"formatted-timestamp"}`]);
+            expect(result).toEqual([`{"message":"Hello","category":"[DEBUG]","date":"formatted-timestamp"}`]);
         });
     });
 });

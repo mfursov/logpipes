@@ -17,7 +17,7 @@ console.log('Log after pipe is installed', {a: 1, b: 2, c: 3});
 Produces a one-liner string with a serialized JSON:
 
 ```
-'{"message":"Log after pipe is installed $1","$1":{"a":1,"b":2,"c":3},"@level":"log","@timestamp":"2023-07-03T17:13:56.018Z"}'
+'{"message":"Log after pipe is installed $1","$1":{"a":1,"b":2,"c":3},"level":"log","@timestamp":"2023-07-03T17:13:56.018Z"}'
 ```
 
 ### JsonStringifyPipe options (JsonPipeOptions)
@@ -103,6 +103,16 @@ Pipe specific options (`JsonPipeOptions`).
 messagePropertyName: string;
 
 /**
+ * Log level property name.
+ * If <null>, no log level info is added to the result JSON.
+ * Default: 'level'.
+ */
+levelPropertyName: string | null;
+
+/** Log level value formatter. User only if @levelPropertyName is not <null>. */
+levelPropertyFormatter: (level: LogLevel) => string;
+
+/**
  * Timestamp property name.
  * If <null>, no timestamp is added to the result JSON.
  * Default: '@timestamp'.
@@ -111,16 +121,6 @@ timestampPropertyName: string | null;
 
 /** Timestamp formatter. User only if @timestampPropertyName is not <null>. */
 timestampPropertyFormatter: (timeInMillis: number) => string;
-
-/**
- * Log level property name.
- * If <null>, no log level info is added to the result JSON.
- * Default: '@level'.
- */
-levelPropertyName: string | null;
-
-/** Log level value formatter. User only if @levelPropertyName is not <null>. */
-levelPropertyFormatter: (level: LogLevel) => string;
 
 /**
  *  Builds object token for the message.
@@ -138,7 +138,7 @@ undefinedMessageValue: undefined | string;
 /**
  * If an object parameter of console.log() contains a top-level property marked as isTopLevelProperty,
  * the property is moved from the object to the top-level JSON
- * (same level as 'message', '@timestamp', '@level' fields).
+ * (same level as 'message', '@timestamp', 'level' fields).
  */
 isTopLevelProperty: (propertyName: string) => boolean;
 ```

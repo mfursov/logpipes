@@ -10,6 +10,16 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
     messagePropertyName: string;
 
     /**
+     * Log level property name.
+     * If <null>, no log level info is added to the result JSON.
+     * Default: 'level'.
+     */
+    levelPropertyName: string | null;
+
+    /** Log level value formatter. User only if @levelPropertyName is not <null>. */
+    levelPropertyFormatter: (level: LogLevel) => string;
+
+    /**
      * Timestamp property name.
      * If <null>, no timestamp is added to the result JSON.
      * Default: '@timestamp'.
@@ -18,16 +28,6 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
 
     /** Timestamp formatter. User only if @timestampPropertyName is not <null>. */
     timestampPropertyFormatter: (timeInMillis: number) => string;
-
-    /**
-     * Log level property name.
-     * If <null>, no log level info is added to the result JSON.
-     * Default: '@level'.
-     */
-    levelPropertyName: string | null;
-
-    /** Log level value formatter. User only if @levelPropertyName is not <null>. */
-    levelPropertyFormatter: (level: LogLevel) => string;
 
     /**
      *  Builds object token for the message.
@@ -54,11 +54,11 @@ export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions> = {
     ...DEFAULT_JSON_SIMPLIFIER_OPTIONS,
     messagePropertyName: 'message',
 
+    levelPropertyName: 'level',
+    levelPropertyFormatter: level => level,
+
     timestampPropertyName: '@timestamp',
     timestampPropertyFormatter: timeInMillis => new Date(timeInMillis).toISOString(),
-
-    levelPropertyName: '@level',
-    levelPropertyFormatter: level => level,
 
     isTopLevelProperty: propertyName => propertyName.startsWith('@'),
     isIgnoredProperty: () => false,
