@@ -143,4 +143,4 @@ undefinedMessageValue: undefined | string;
 isTopLevelProperty: (propertyName: string) => boolean;
 ```
 
-
+Check [tests](https://github.com/mfursov/logpipes/tree/master/tests) for more self-documented examples.

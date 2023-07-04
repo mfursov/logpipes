@@ -33,5 +33,9 @@
     "console.log",
     "console.debug"
   ],
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mfursov/logpipes.git"
+  }
 }
