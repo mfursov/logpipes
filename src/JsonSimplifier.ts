@@ -1,3 +1,4 @@
+/** Options for 'simplifyJson()' function. */
 export interface JsonSimplifierOptions {
     /**
      * Maximum depth level in JSON before overriding the leaf value with a @depthLimitValue.

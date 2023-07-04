@@ -1,7 +1,7 @@
 // noinspection JSPrimitiveTypeWrapperUsage
 
 import {describe, expect, it} from '@jest/globals';
-import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, simplifyJson, simplifyValue} from '../src';
+import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from '../src';
 
 describe('JsonSimplifier', () => {
 
@@ -80,10 +80,10 @@ describe('JsonSimplifier', () => {
         });
 
         it('handles too deep recursion for objects', () => {
-            const options = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, maxRecursionLevel: 3};
+            const options: JsonSimplifierOptions = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, maxDepthLimit: 3};
             let object: Record<string, unknown> = {};
             const topLevelObject = object;
-            for (let i = 0; i < options.maxRecursionLevel; i++) {
+            for (let i = 0; i < options.maxDepthLimit; i++) {
                 const child = {};
                 object['child'] = child;
                 object = child;
@@ -98,10 +98,10 @@ describe('JsonSimplifier', () => {
         });
 
         it('handles too deep recursion for arrays', () => {
-            const options = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, maxRecursionLevel: 3};
+            const options: JsonSimplifierOptions = {...DEFAULT_JSON_SIMPLIFIER_OPTIONS, maxDepthLimit: 3};
             let array: (object | string)[] = [];
             const topLevelArray = array;
-            for (let i = 0; i < options.maxRecursionLevel; i++) {
+            for (let i = 0; i < options.maxDepthLimit; i++) {
                 const child: (object | string)[] = [];
                 array.push(child);
                 array = child;

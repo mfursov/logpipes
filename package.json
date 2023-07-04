@@ -1,6 +1,6 @@
 {
   "description": "Data transformation pipes for console.log",
-  "version": "0.99.0",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "name": "logpipes",

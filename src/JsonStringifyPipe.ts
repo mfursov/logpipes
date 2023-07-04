@@ -1,18 +1,52 @@
-import {LogLevel, LogPipe} from './ConsoleOverrides';
 import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from './JsonSimplifier';
+import {LogLevel, LogPipe} from './ConsoleOverrides';
 
+/** Options for JsonStringifyPipe. */
 export interface JsonPipeOptions extends JsonSimplifierOptions {
+    /**
+     * Top-level property name that includes a concatenated message of all strings and primitive types passed to console.log.
+     * Default: 'message'.
+     */
     messagePropertyName: string;
 
+    /**
+     * Timestamp property name.
+     * If <null>, no timestamp is added to the result JSON.
+     * Default: '@timestamp'.
+     */
     timestampPropertyName: string | null;
+
+    /** Timestamp formatter. User only if @timestampPropertyName is not <null>. */
     timestampPropertyFormatter: (timeInMillis: number) => string;
 
+    /**
+     * Log level property name.
+     * If <null>, no log level info is added to the result JSON.
+     * Default: '@level'.
+     */
     levelPropertyName: string | null;
+
+    /** Log level value formatter. User only if @levelPropertyName is not <null>. */
     levelPropertyFormatter: (level: LogLevel) => string;
 
+    /**
+     *  Builds object token for the message.
+     *  By default, uses '$N' as a pattern where 'N' is positional a number of the console.log argument
+     *  not inlined into the message.
+     */
     getObjectArgumentMessageToken: (argumentIndex: number, argument: object) => string;
 
+    /**
+     * Used to provide a default value to reveal present but undefined fields.
+     * The default value is <undefined> which results the fields with undefined value be excluded from the log.
+     */
     undefinedMessageValue: undefined | string;
+
+    /**
+     * If an object parameter of console.log() contains a top-level property marked as isTopLevelProperty,
+     * the property is moved from the object to the top-level JSON
+     * (same level as 'message', '@timestamp', '@level' fields).
+     */
     isTopLevelProperty: (propertyName: string) => boolean;
 }
 
