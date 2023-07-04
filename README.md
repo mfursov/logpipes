@@ -5,6 +5,8 @@ Transforms console.log ('debug', 'error', 'info', 'log', 'trace', 'warn') method
 Comes with a ready-to-use implementation of `JsonStringifyPipe` - a pipe that transforms console output into a single
 serialized JSON string.
 
+TypeScript safe. Has zero external dependencies.
+
 Usage example:
 
 ```typescript
