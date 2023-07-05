@@ -140,6 +140,12 @@ describe('JsonStringifyPipe', () => {
             expect(result).toEqual([`{"message":"Hello","category":"[DEBUG]","date":"formatted-timestamp"}`]);
         });
 
+        it('correctly handles undefined fields of objects args', () => {
+            const pipe = createJsonStringifyPipeNoAttributes();
+            const result = pipe('log', 'Hello', {a: undefined});
+            expect(result).toEqual(['{"message":"Hello $1","$1":{}}']);
+        });
+
         it('passed correct argumentIndex and originalArgumentIndex to the getObjectMessageToken', () => {
             let callCount = 0;
             const pipe = createJsonStringifyPipe({
@@ -158,17 +164,46 @@ describe('JsonStringifyPipe', () => {
         });
 
 
-        it('supports pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true', () => {
-            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
-            const result = pipe('log', 'Hello', {headers: {header1: '1', header2: '2'}})[0] as string;
-            expect(result).toBe(`{"message":"Hello $headers","$headers":{"header1":"1","header2":"2"}}`);
-        });
-
         it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects is false by default', () => {
             const pipe = createJsonStringifyPipeNoAttributes();
-            const result = pipe('log', 'Hello', {headers: {header1: '1', header2: '2'}})[0] as string;
-            expect(result).toBe(`{"message":"Hello $1","$1":{"headers":{"header1":"1","header2":"2"}}}`);
+            const result = pipe('log', 'Hello', {headers: {header1: '1', header2: '2'}});
+            expect(result).toEqual([`{"message":"Hello $1","$1":{"headers":{"header1":"1","header2":"2"}}}`]);
         });
 
+        it('supports pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true', () => {
+            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {headers: {header1: '1', header2: '2'}});
+            expect(result).toEqual([`{"message":"Hello $headers","$headers":{"header1":"1","header2":"2"}}`]);
+        });
+
+        it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true and undefined field value', () => {
+            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {body: undefined});
+            expect(result).toEqual([`{"message":"Hello $body:[undefined]"}`]);
+        });
+
+        it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true and null field value', () => {
+            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {body: null});
+            expect(result).toEqual([`{"message":"Hello $body:[null]"}`]);
+        });
+
+        it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true and string field value', () => {
+            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {body: '123'});
+            expect(result).toEqual([`{"message":"Hello $body:['123']"}`]);
+        });
+
+        it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true and numeric field value', () => {
+            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {body: 123});
+            expect(result).toEqual([`{"message":"Hello $body:[123]"}`]);
+        });
+
+        it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true and boolean field value', () => {
+            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {body: false});
+            expect(result).toEqual([`{"message":"Hello $body:[false]"}`]);
+        });
     });
 });

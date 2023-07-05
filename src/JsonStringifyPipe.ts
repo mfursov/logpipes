@@ -118,7 +118,13 @@ export function createJsonStringifyPipe(inputOptions: Partial<JsonPipeOptions> =
                     && Object.keys(childValue).length === 1) {
                     const [childFieldName, childFieldValue] = Object.entries(childValue)[0];
                     messageToken = `$${childFieldName}`;
-                    childValue = childFieldValue;
+                    if (isInlinedObjectMessageTokenValue(childFieldValue)) {
+                        const quote = typeof childFieldValue === 'string' ? '\'' : '';
+                        messageToken += `:[${quote}${childFieldValue}${quote}]`;
+                        childValue = undefined;
+                    } else {
+                        childValue = childFieldValue;
+                    }
                     // messageArgIndex is not increased to stay continuous.
                 } else {
                     messageToken = options.getObjectMessageToken(messageArgIndex, arg, argIndex);
@@ -167,4 +173,13 @@ export function pickTopLevelProperties(obj: object,
         }
     }
     return result;
+}
+
+/** Returns 'true' if the value can be inlined as a part of 'pickFieldNameAsObjectMessageTokenForSingleFieldObjects' transformation. */
+function isInlinedObjectMessageTokenValue(value: unknown): boolean {
+    return value === null ||
+        typeof value === 'string' ||
+        typeof value === 'undefined' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean';
 }
