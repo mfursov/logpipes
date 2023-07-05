@@ -1,5 +1,5 @@
-export const LOG_LEVEL = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
-export type LogLevel = typeof LOG_LEVEL[number];
+export const LOG_LEVELS = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
+export type LogLevel = typeof LOG_LEVELS[number];
 export type LogPipe = (level: LogLevel, ...args: any[]) => unknown[];
 
 const consoleOverrides: Array<LogPipe> = [];
@@ -53,7 +53,7 @@ function initializeConsoleOverrideContextOnFirstUse(): void {
     if (originalConsole['debug'] !== noop) {
         return; // Already installed.
     }
-    for (const level of LOG_LEVEL) {
+    for (const level of LOG_LEVELS) {
         originalConsole[level] = console[level] as ConsoleLogFn;
         console[level] = (...args: any[]): void => {
             let resultArgs = args;
@@ -75,7 +75,7 @@ function destroyConsoleOverrideContextOnLastUse(): void {
     if (originalConsole['debug'] === noop) {
         return; // Nothing to restore: not overridden.
     }
-    for (const name of LOG_LEVEL) {
+    for (const name of LOG_LEVELS) {
         console[name] = originalConsole[name];
         originalConsole[name] = noop;
     }

@@ -2,7 +2,7 @@ import {afterEach, describe, expect, it} from '@jest/globals';
 import {
     getConsoleOverrides,
     installConsoleOverride,
-    LOG_LEVEL,
+    LOG_LEVELS,
     LogLevel,
     LogPipe,
     uninstallAllConsoleOverrides,
@@ -26,10 +26,10 @@ describe('ConsoleOverrides', () => {
         };
         const originalConsole: Record<LogLevel, unknown> = {...console};
         installConsoleOverride(pipe);
-        for (const type of LOG_LEVEL) {
+        for (const type of LOG_LEVELS) {
             expect(console[type]).not.toBe(originalConsole[type]);
         }
-        for (const type of LOG_LEVEL) {
+        for (const type of LOG_LEVELS) {
             const arg = `Hello ${type}`;
             console[type](arg);
             expect(lastCalledPipeType).toBe(type);

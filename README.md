@@ -20,147 +20,19 @@ Produces a one-liner string with a serialized JSON:
 '{"message":"Log after pipe is installed $1","$1":{"a":1,"b":2,"c":3},"level":"log","@timestamp":"2023-07-03T17:13:56.018Z"}'
 ```
 
-### JsonStringifyPipe options (JsonPipeOptions)
+### JsonStringifyPipe
 
-Inherited from `JsonSimplifierOptions`
+JsonStringifyPipe accepts `JsonStringifyPipeOptions` which inherit all `JsonSimplifierOptions`.
 
-```typescript
-/**
- * Maximum depth level in JSON before overriding the leaf value with a @depthLimitValue.
- * Default: 10.
- */
-maxDepthLimit: number;
+See in-code docs for the available options:
 
-/**
- * All arrays with a number of elements greater the limit are serialized as a @arrayLengthLimitValue.
- * Default: 100.
- */
-maxArrayLength: number;
+- [JsonSimplifierOptions](https://github.com/mfursov/logpipes/tree/master/src/JsonSimplifier.ts)
+- [JsonStringifyPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/JsonStringifyPipe.ts)
 
-/**
- * All objects with a number of properties greater the limit are serialized as a @objectPropertyCountLimitValue.
- * Default: 100.
- */
-maxObjectPropertyCount: number;
+Check [unit tests](https://github.com/mfursov/logpipes/tree/master/tests) for more examples.
 
-/**
- * Excludes the property from the result.
- * Default: no properties are excluded.
- */
-isIgnoredProperty: (propertyName: string) => boolean;
+### LogLevelFilterPipe
 
-/**
- * Replaces property value with another value.
- * Can be used for value masking.
- * Default: no properties are replaced.
- */
-replacePropertyValue: (propertyName: string, propertyValue: unknown) => unknown;
+LogLevelFilterPipe excludes configured log levels from the final output.
 
-/**
- * A value used to stop recursion when @maxDepthLimit is reached.
- * Default: '[Depth limit ~]'.
- */
-depthLimitValue: string;
-
-/**
- * A value used to replace arrays with a number of elements > @maxArrayLength
- * Default: '[Array, length: $length ~]'.
- */
-arrayLengthLimitValue: string;
-
-/**
- * A value used to replace objects with a number of properties > @maxObjectPropertyCount.
- * Default: '[Object, properties: $count ~]'.
- */
-objectPropertyCountLimitValue: string;
-
-/**
- * A value used to replace a circular reference.
- * Default: '[Circular ~]'.
- */
-circularReferenceValue: string;
-
-/**
- * A value used to replace functions.
- * Default: '[Function ~]'.
- **/
-functionValue: string;
-
-/**
- * A value used to replace symbol values.
- * Default: '[Symbol ~]'.
- **/
-symbolValue: string;
-```
-
-Pipe specific options (`JsonPipeOptions`).
-
-```typescript
-/**
- * Top-level property name that includes a concatenated message of all strings and primitive types passed to console.log.
- * Default: 'message'.
- */
-messagePropertyName: string;
-
-/**
- * Log level property name.
- * If <null>, no log level info is added to the result JSON.
- * Default: 'level'.
- */
-levelPropertyName: string | null;
-
-/** Log level value formatter. User only if @levelPropertyName is not <null>. */
-levelPropertyFormatter: (level: LogLevel) => string;
-
-/**
- * Timestamp property name.
- * If <null>, no timestamp is added to the result JSON.
- * Default: '@timestamp'.
- */
-timestampPropertyName: string | null;
-
-/** Timestamp formatter. User only if @timestampPropertyName is not <null>. */
-timestampPropertyFormatter: (timeInMillis: number) => string;
-
-/**
- *  Builds object token for the message.
- *  By default, uses '$N' as a pattern where 'N' is positional a number (@messageArgumentIndex + 1)
- *  of the console.log argument not inlined into the message.
- *  @originalArgumentIndex is the original index of the argument in console.log() call.
- *  Example:
- *      console.log('a', {f:0}, 'b', {f:0});
- *      @messageArgumentIndex = 0, 1.
- *      @originalArgumentIndex = 1, 3.
- */
-getObjectMessageToken: (messageArgumentIndex: number, argument: object, originalArgumentIndex: number) => string;
-
-/**
- * For a single top-level field objects uses field name as an argument name and includes only a field sub-objects into arguments.
- *
- * Example: console("Hello", {headers: {header1:'', header2: ''}});
- * 
- * pickFieldNameAsObjectMessageTokenForSingleFieldObjects = true:
- *  {"message":"Hello $headers","$headers":{"header1":"","header2":""}}
- *  
- * pickFieldNameAsObjectMessageTokenForSingleFieldObjects = false:
- *  {"message":"Hello $1","$1":{"headers":{"header1":"","header2":""}}}
- *  
- * Default: false. Overrides 'getObjectMessageToken'.
- */
-pickFieldNameAsObjectMessageTokenForSingleFieldObjects: boolean;
-
-/**
- * Used to provide a default value to reveal present but undefined fields.
- * The default value is <undefined> which results the fields with undefined value be excluded from the log.
- */
-undefinedMessageValue: undefined | string;
-
-/**
- * If an object parameter of console.log() contains a top-level property marked as isTopLevelProperty,
- * the property is moved from the object to the top-level JSON
- * (same level as 'message', '@timestamp', 'level' fields).
- */
-isTopLevelProperty: (propertyName: string) => boolean;
-```
-
-Check [tests](https://github.com/mfursov/logpipes/tree/master/tests) for more self-documented examples.
+See [LogLevelFilterPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogLevelFilterPipe.ts) and related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests).

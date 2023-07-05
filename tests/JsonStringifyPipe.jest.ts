@@ -1,7 +1,7 @@
 import {describe, expect, it} from '@jest/globals';
 import {createJsonStringifyPipe, JsonPipeOptions, LogPipe, pickTopLevelProperties} from '../src';
 
-describe('JsonPipe', () => {
+describe('JsonStringifyPipe', () => {
 
     const symbolPropertyName = Symbol('symbol');
 
