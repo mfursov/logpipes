@@ -2,8 +2,8 @@
 
 Transforms console.log ('debug', 'error', 'info', 'log', 'trace', 'warn') method output with chainable pipes.
 
-Comes with a ready-to-use implementation of `JsonStringifyPipe` - a pipe that transforms console output into a single
-serialized JSON string.
+Comes with a ready-to-use implementation of different pipes, like `JsonStringifyPipe`: a pipe that transforms console
+output into a single serialized JSON string.
 
 TypeScript safe. Has zero external dependencies.
 
@@ -35,4 +35,5 @@ Check [unit tests](https://github.com/mfursov/logpipes/tree/master/tests) for mo
 
 LogLevelFilterPipe excludes configured log levels from the final output.
 
-See [LogLevelFilterPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogLevelFilterPipe.ts) and related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests).
+See [LogLevelFilterPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogLevelFilterPipe.ts) and
+related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests).
