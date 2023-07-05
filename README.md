@@ -132,7 +132,22 @@ timestampPropertyFormatter: (timeInMillis: number) => string;
  *      @messageArgumentIndex = 0, 1.
  *      @originalArgumentIndex = 1, 3.
  */
-getObjectArgumentMessageToken: (messageArgumentIndex: number, argument: object, originalArgumentIndex: number) => string;
+getObjectMessageToken: (messageArgumentIndex: number, argument: object, originalArgumentIndex: number) => string;
+
+/**
+ * For a single top-level field objects uses field name as an argument name and includes only a field sub-objects into arguments.
+ *
+ * Example: console("Hello", {headers: {header1:'', header2: ''}});
+ * 
+ * pickFieldNameAsObjectMessageTokenForSingleFieldObjects = true:
+ *  {"message":"Hello $headers","$headers":{"header1":"","header2":""}}
+ *  
+ * pickFieldNameAsObjectMessageTokenForSingleFieldObjects = false:
+ *  {"message":"Hello $1","$1":{"headers":{"header1":"","header2":""}}}
+ *  
+ * Default: false. Overrides 'getObjectMessageToken'.
+ */
+pickFieldNameAsObjectMessageTokenForSingleFieldObjects: boolean;
 
 /**
  * Used to provide a default value to reveal present but undefined fields.

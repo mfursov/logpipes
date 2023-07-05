@@ -39,7 +39,22 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
      *      @messageArgumentIndex = 0, 1.
      *      @originalArgumentIndex = 1, 3.
      */
-    getObjectArgumentMessageToken: (messageArgumentIndex: number, argument: object, originalArgumentIndex: number) => string;
+    getObjectMessageToken: (messageArgumentIndex: number, argument: object, originalArgumentIndex: number) => string;
+
+    /**
+     * For a single top-level field objects uses field name as an argument name and includes only a field sub-objects into arguments.
+     *
+     * Example: console("Hello", {headers: {header1:'', header2: ''}});
+     *
+     * pickFieldNameAsObjectMessageTokenForSingleFieldObjects = true:
+     *  {"message":"Hello $headers","$headers":{"header1":"","header2":""}}
+     *
+     * pickFieldNameAsObjectMessageTokenForSingleFieldObjects = false:
+     *  {"message":"Hello $1","$1":{"headers":{"header1":"","header2":""}}}
+     *
+     * Default: false. Overrides 'getObjectMessageToken'.
+     */
+    pickFieldNameAsObjectMessageTokenForSingleFieldObjects: boolean;
 
     /**
      * Used to provide a default value to reveal present but undefined fields.
@@ -67,7 +82,8 @@ export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions> = {
 
     isTopLevelProperty: propertyName => propertyName.startsWith('@'),
     isIgnoredProperty: () => false,
-    getObjectArgumentMessageToken: argumentIndex => `$${argumentIndex + 1}`,
+    getObjectMessageToken: argumentIndex => `$${argumentIndex + 1}`,
+    pickFieldNameAsObjectMessageTokenForSingleFieldObjects: false,
     undefinedMessageValue: undefined,
 };
 
@@ -90,14 +106,25 @@ export function createJsonStringifyPipe(inputOptions: Partial<JsonPipeOptions> =
                 for (const [topLevelPropertyName, topLevelPropertyValue] of Object.entries(topLevelProperties)) {
                     resultJson[topLevelPropertyName] = topLevelPropertyValue;
                 }
-                messageToken = options.getObjectArgumentMessageToken(messageArgIndex, arg, argIndex);
                 // Add top-level properties to the list of ignored when calling convertToSafeJson.
                 const simplifyOptions: JsonSimplifierOptions = {
                     ...options,
                     isIgnoredProperty: name => options.isIgnoredProperty(name) || name in topLevelProperties
                 };
-                resultJson[messageToken] = simplifyJson(arg, simplifyOptions);
-                messageArgIndex++;
+                let childValue = simplifyJson(arg, simplifyOptions);
+                if (options.pickFieldNameAsObjectMessageTokenForSingleFieldObjects
+                    && typeof childValue === 'object'
+                    && childValue !== null
+                    && Object.keys(childValue).length === 1) {
+                    const [childFieldName, childFieldValue] = Object.entries(childValue)[0];
+                    messageToken = `$${childFieldName}`;
+                    childValue = childFieldValue;
+                    // messageArgIndex is not increased to stay continuous.
+                } else {
+                    messageToken = options.getObjectMessageToken(messageArgIndex, arg, argIndex);
+                    messageArgIndex++;
+                }
+                resultJson[messageToken] = childValue;
             } else if (arg === undefined) {
                 if (options.undefinedMessageValue !== undefined) {
                     messageToken += options.undefinedMessageValue;

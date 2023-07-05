@@ -140,10 +140,10 @@ describe('JsonPipe', () => {
             expect(result).toEqual([`{"message":"Hello","category":"[DEBUG]","date":"formatted-timestamp"}`]);
         });
 
-        it('passed correct argumentIndex and originalArgumentIndex to the getObjectArgumentMessageToken', () => {
+        it('passed correct argumentIndex and originalArgumentIndex to the getObjectMessageToken', () => {
             let callCount = 0;
             const pipe = createJsonStringifyPipe({
-                getObjectArgumentMessageToken: (argumentIndex, argument, originalArgumentIndex) => {
+                getObjectMessageToken: (argumentIndex, argument, originalArgumentIndex) => {
                     const input = argument as { expectedIndex: number, expectedOriginalIndex: number };
                     expect(argumentIndex).toBe(input.expectedIndex);
                     expect(originalArgumentIndex).toBe(input.expectedOriginalIndex);
@@ -156,5 +156,19 @@ describe('JsonPipe', () => {
             expect(result.startsWith(`{"message":"a #0 b #1","#0":{`)).toBe(true);
             expect(callCount).toBe(2);
         });
+
+
+        it('supports pickFieldNameAsObjectMessageTokenForSingleFieldObjects set to true', () => {
+            const pipe = createJsonStringifyPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {headers: {header1: '1', header2: '2'}})[0] as string;
+            expect(result).toBe(`{"message":"Hello $headers","$headers":{"header1":"1","header2":"2"}}`);
+        });
+
+        it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects is false by default', () => {
+            const pipe = createJsonStringifyPipeNoAttributes();
+            const result = pipe('log', 'Hello', {headers: {header1: '1', header2: '2'}})[0] as string;
+            expect(result).toBe(`{"message":"Hello $1","$1":{"headers":{"header1":"1","header2":"2"}}}`);
+        });
+
     });
 });
