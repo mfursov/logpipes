@@ -31,10 +31,15 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
 
     /**
      *  Builds object token for the message.
-     *  By default, uses '$N' as a pattern where 'N' is positional a number of the console.log argument
-     *  not inlined into the message.
+     *  By default, uses '$N' as a pattern where 'N' is positional a number (@messageArgumentIndex + 1)
+     *  of the console.log argument not inlined into the message.
+     *  @originalArgumentIndex is the original index of the argument in console.log() call.
+     *  Example:
+     *      console.log('a', {f:0}, 'b', {f:0});
+     *      @messageArgumentIndex = 0, 1.
+     *      @originalArgumentIndex = 1, 3.
      */
-    getObjectArgumentMessageToken: (argumentIndex: number, argument: object) => string;
+    getObjectArgumentMessageToken: (messageArgumentIndex: number, argument: object, originalArgumentIndex: number) => string;
 
     /**
      * Used to provide a default value to reveal present but undefined fields.
@@ -85,7 +90,7 @@ export function createJsonStringifyPipe(inputOptions: Partial<JsonPipeOptions> =
                 for (const [topLevelPropertyName, topLevelPropertyValue] of Object.entries(topLevelProperties)) {
                     resultJson[topLevelPropertyName] = topLevelPropertyValue;
                 }
-                messageToken = options.getObjectArgumentMessageToken(messageArgIndex, arg);
+                messageToken = options.getObjectArgumentMessageToken(messageArgIndex, arg, argIndex);
                 // Add top-level properties to the list of ignored when calling convertToSafeJson.
                 const simplifyOptions: JsonSimplifierOptions = {
                     ...options,

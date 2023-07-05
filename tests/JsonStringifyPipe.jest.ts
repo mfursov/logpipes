@@ -139,5 +139,22 @@ describe('JsonPipe', () => {
             const result = pipe('debug', 'Hello');
             expect(result).toEqual([`{"message":"Hello","category":"[DEBUG]","date":"formatted-timestamp"}`]);
         });
+
+        it('passed correct argumentIndex and originalArgumentIndex to the getObjectArgumentMessageToken', () => {
+            let callCount = 0;
+            const pipe = createJsonStringifyPipe({
+                getObjectArgumentMessageToken: (argumentIndex, argument, originalArgumentIndex) => {
+                    const input = argument as { expectedIndex: number, expectedOriginalIndex: number };
+                    expect(argumentIndex).toBe(input.expectedIndex);
+                    expect(originalArgumentIndex).toBe(input.expectedOriginalIndex);
+                    callCount++;
+                    return `#${argumentIndex}`;
+                }
+            });
+            const result = pipe('log', 'a', {expectedIndex: 0, expectedOriginalIndex: 1}, 'b',
+                {expectedIndex: 1, expectedOriginalIndex: 3})[0] as string;
+            expect(result.startsWith(`{"message":"a #0 b #1","#0":{`)).toBe(true);
+            expect(callCount).toBe(2);
+        });
     });
 });
