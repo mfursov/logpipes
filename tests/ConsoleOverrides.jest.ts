@@ -1,6 +1,7 @@
-import {afterEach, describe, expect, it} from '@jest/globals';
+import {afterEach, beforeEach, describe, expect, it} from '@jest/globals';
 import {
     getConsoleOverrides,
+    getOriginalConsoleMethods,
     installConsoleOverride,
     LOG_LEVELS,
     LogLevel,
@@ -113,5 +114,79 @@ describe('ConsoleOverrides', () => {
     it('uninstall methods have no effect on non-existing pipe', () => {
         uninstallConsoleOverride(() => []);
         uninstallAllConsoleOverrides();
+    });
+
+    describe('install and uninstall', () => {
+        let installCount = 0;
+        let uninstallCount = 0;
+        const pipe: LogPipe = () => [];
+        pipe.onInstall = (): void => {installCount++;};
+        pipe.onUninstall = (): void => {uninstallCount++;};
+
+        beforeEach(() => {
+            installCount = 0;
+            uninstallCount = 0;
+        });
+
+        it('runs install and uninstall on pipes', () => {
+            installConsoleOverride(pipe);
+            expect(installCount).toBe(1);
+            expect(uninstallCount).toBe(0);
+
+            uninstallConsoleOverride(pipe);
+            expect(installCount).toBe(1);
+            expect(uninstallCount).toBe(1);
+        });
+
+        it('call install and uninstall only once', () => {
+            installConsoleOverride([pipe, pipe]);
+            expect(installCount).toBe(1);
+            expect(uninstallCount).toBe(0);
+
+            uninstallAllConsoleOverrides();
+            expect(installCount).toBe(1);
+            expect(uninstallCount).toBe(1);
+        });
+
+        it('allows to reinstall pipes', () => {
+            installConsoleOverride(pipe);
+            expect(installCount).toBe(1);
+            expect(uninstallCount).toBe(0);
+
+            uninstallConsoleOverride(pipe);
+            expect(installCount).toBe(1);
+            expect(uninstallCount).toBe(1);
+
+            installConsoleOverride(pipe);
+            expect(installCount).toBe(2);
+            expect(uninstallCount).toBe(1);
+
+        });
+
+    });
+
+    describe('getOriginalConsoleMethods', () => {
+        function captureConsoleMethods(): Record<LogLevel, unknown> {
+            return LOG_LEVELS.reduce((r, level) => {
+                r[level] = console[level];
+                return r;
+            }, {} as Record<LogLevel, unknown>);
+        }
+
+        const originalMethods = captureConsoleMethods();
+
+        it('returns original console methods if no pipe is installed', () => {
+            const result = getOriginalConsoleMethods();
+            expect(result).toEqual(originalMethods);
+        });
+
+        it('returns original console methods if pipe is installed', () => {
+            installConsoleOverride((_, args) => args);
+            for (const level of LOG_LEVELS) {
+                expect(console[level]).not.toBe(originalMethods[level]);
+            }
+            const result = getOriginalConsoleMethods();
+            expect(result).toEqual(originalMethods);
+        });
     });
 });

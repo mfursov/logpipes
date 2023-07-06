@@ -12,7 +12,7 @@ describe('LogLevelFilterPipe', () => {
         }
     });
 
-    it('filters log level messages when a log level is provided', () => {
+    it('filters messages when a log level is provided', () => {
         const excludedLogLevels: Array<LogLevel> = ['debug', 'trace'];
         const pipe = createLogLevelFilterPipe({excludedLogLevels});
         const args = [1, true, {}, ''];

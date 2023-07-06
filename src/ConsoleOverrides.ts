@@ -1,6 +1,12 @@
 export const LOG_LEVELS = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
 export type LogLevel = typeof LOG_LEVELS[number];
-export type LogPipe = (level: LogLevel, ...args: any[]) => unknown[];
+
+export interface LogPipe {
+    (level: LogLevel, ...args: any[]): unknown[];
+
+    onInstall?: () => void;
+    onUninstall?: () => void;
+}
 
 const consoleOverrides: Array<LogPipe> = [];
 
@@ -23,7 +29,13 @@ const originalConsole: Record<LogLevel, ConsoleLogFn> = {
 export function installConsoleOverride(pipe: LogPipe | Array<LogPipe>): void {
     initializeConsoleOverrideContextOnFirstUse();
     const pipes = Array.isArray(pipe) ? pipe : [pipe];
-    consoleOverrides.push(...pipes);
+    for (const pipe of pipes) {
+        // Call pipe.onInstall() when pipe is installed first time.
+        if (!consoleOverrides.includes(pipe)) {
+            pipe.onInstall && pipe.onInstall();
+        }
+        consoleOverrides.push(pipe);
+    }
 }
 
 /** Removes the given pipe from the active console overrides. */
@@ -31,7 +43,11 @@ export function uninstallConsoleOverride(pipe: LogPipe | Array<LogPipe>): void {
     const pipes = Array.isArray(pipe) ? pipe : [pipe];
     for (const pipe of pipes) {
         for (let pipeIndex = consoleOverrides.indexOf(pipe); pipeIndex >= 0; pipeIndex = consoleOverrides.indexOf(pipe)) {
-            consoleOverrides.splice(pipeIndex, 1);
+            const removedPipe = consoleOverrides.splice(pipeIndex, 1)[0];
+            // Call pipe.onUninstall() when the pipe is not present in the overrides anymore.
+            if (!consoleOverrides.includes(removedPipe)) {
+                removedPipe?.onUninstall && removedPipe.onUninstall();
+            }
         }
     }
     destroyConsoleOverrideContextOnLastUse();
@@ -47,6 +63,21 @@ export function uninstallAllConsoleOverrides(): void {
 /** Returns a list of all console overrides. */
 export function getConsoleOverrides(): Array<LogPipe> {
     return [...consoleOverrides];
+}
+
+/**
+ * Returns set of console.[log] methods captured during installation of the first pipe.
+ * If no pipe is installed, returns current console[log] methods.
+ */
+export function getOriginalConsoleMethods(): Record<LogLevel, ConsoleLogFn> {
+    if (originalConsole['debug'] !== noop) {
+        return {...originalConsole};
+    }
+    const result = {} as Record<LogLevel, ConsoleLogFn>;
+    for (const level of LOG_LEVELS) {
+        result[level] = console[level] as ConsoleLogFn;
+    }
+    return result;
 }
 
 function initializeConsoleOverrideContextOnFirstUse(): void {
