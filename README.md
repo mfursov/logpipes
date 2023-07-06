@@ -48,5 +48,5 @@ LogCachePipe caches console messages and provides access to the cache.
 
 This pipe can be used to dump or sideload all console log messages.
 
-See [LogCachePipe](https://github.com/mfursov/logpipes/tree/master/src/LogCachePipe.ts) and
+See [LogCachePipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogCachePipe.ts) and
 related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests/LogCachePipe.jest.ts).
