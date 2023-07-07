@@ -52,3 +52,10 @@ This pipe can be used to dump or sideload all console log messages.
 
 See [LogCachePipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogCachePipe.ts) and
 related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests/LogCachePipe.jest.ts).
+
+### NoopPipe
+
+NoopPipe does nothing and proxies all parameters to the next pipe with no changes.
+
+It can be used to reduce a client-side boilerplate code.
+

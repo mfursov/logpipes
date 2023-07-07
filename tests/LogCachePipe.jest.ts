@@ -1,5 +1,5 @@
 import {describe, expect, it} from '@jest/globals';
-import {createLogCachePipe} from '../src/LogCachePipe';
+import {createLogCachePipe} from '../src';
 
 describe('LogCachePipe', () => {
 
