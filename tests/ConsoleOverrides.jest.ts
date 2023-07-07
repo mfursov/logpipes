@@ -3,11 +3,13 @@ import {
     getConsoleOverrides,
     getOriginalConsoleMethods,
     installConsoleOverride,
+    installConsoleOverrides,
     LOG_LEVELS,
     LogLevel,
     LogPipe,
     uninstallAllConsoleOverrides,
-    uninstallConsoleOverride
+    uninstallConsoleOverride,
+    uninstallConsoleOverrides
 } from '../src';
 
 describe('ConsoleOverrides', () => {
@@ -26,7 +28,7 @@ describe('ConsoleOverrides', () => {
             return [];
         };
         const originalConsole: Record<LogLevel, unknown> = {...console};
-        installConsoleOverride(pipe);
+        installConsoleOverrides(pipe);
         for (const type of LOG_LEVELS) {
             expect(console[type]).not.toBe(originalConsole[type]);
         }
@@ -54,9 +56,9 @@ describe('ConsoleOverrides', () => {
             checkIsDone = true;
             return [];
         };
-        installConsoleOverride(pipe1);
-        installConsoleOverride(pipe2);
-        installConsoleOverride(checkingPipe);
+        installConsoleOverrides(pipe1);
+        installConsoleOverrides(pipe2);
+        installConsoleOverrides(checkingPipe);
         console.info('some text', 2, true);
         expect(checkIsDone).toBe(true);
     });
@@ -71,7 +73,7 @@ describe('ConsoleOverrides', () => {
             lastCalledPipe = 'checking';
             return [];
         };
-        installConsoleOverride([suppressingPipe, checkingPipe]);
+        installConsoleOverrides(suppressingPipe, checkingPipe);
         console.log('Ping!');
         expect(lastCalledPipe).toBe('suppressing');
     });
@@ -87,12 +89,12 @@ describe('ConsoleOverrides', () => {
             message = args[0];
             return [];
         };
-        installConsoleOverride([pipe1, pipe2, pipe3, checkingPipe]);
+        installConsoleOverrides(pipe1, pipe2, pipe3, checkingPipe);
         expect(getConsoleOverrides()).toEqual([pipe1, pipe2, pipe3, checkingPipe]);
         console.warn('$');
         expect(message).toBe('CBA$');
 
-        uninstallConsoleOverride(pipe2);
+        uninstallConsoleOverrides(pipe2);
         expect(getConsoleOverrides()).toEqual([pipe1, pipe3, checkingPipe]);
         console.warn('$');
         expect(message).toBe('CA$');
@@ -102,7 +104,7 @@ describe('ConsoleOverrides', () => {
         const originalConsoleLog = console.log;
         const pipe: LogPipe = () => [];
 
-        installConsoleOverride([pipe, pipe, pipe]);
+        installConsoleOverrides(pipe, pipe, pipe);
         expect(getConsoleOverrides()).toEqual([pipe, pipe, pipe]);
         expect(console.log).not.toBe(originalConsoleLog);
 
@@ -129,11 +131,11 @@ describe('ConsoleOverrides', () => {
         });
 
         it('runs install and uninstall on pipes', () => {
-            installConsoleOverride(pipe);
+            installConsoleOverrides(pipe);
             expect(installCount).toBe(1);
             expect(uninstallCount).toBe(0);
 
-            uninstallConsoleOverride(pipe);
+            uninstallConsoleOverrides(pipe);
             expect(installCount).toBe(1);
             expect(uninstallCount).toBe(1);
         });

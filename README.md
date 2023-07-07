@@ -10,7 +10,9 @@ TypeScript safe. Has zero external dependencies.
 Usage example:
 
 ```typescript
-installLogPipe(createJsonStringifyPipe());
+import {installConsoleOverrides} from 'logpipes';
+
+installConsoleOverrides(createJsonStringifyPipe());
 console.log('Log after pipe is installed', {a: 1, b: 2, c: 3});
 ```
 

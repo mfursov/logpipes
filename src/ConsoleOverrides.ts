@@ -27,8 +27,16 @@ const originalConsole: Record<LogLevel, ConsoleLogFn> = {
  *  The pipes are called in the order they are installed.
  */
 export function installConsoleOverride(pipe: LogPipe | Array<LogPipe>): void {
-    initializeConsoleOverrideContextOnFirstUse();
     const pipes = Array.isArray(pipe) ? pipe : [pipe];
+    installConsoleOverrides(...pipes);
+}
+
+/**
+ *  Adds the pipes to the list of active console overrides.
+ *  The pipes are called in the order they are installed.
+ */
+export function installConsoleOverrides(...pipes: Array<LogPipe>): void {
+    initializeConsoleOverrideContextOnFirstUse();
     for (const pipe of pipes) {
         // Call pipe.onInstall() when pipe is installed first time.
         if (!consoleOverrides.includes(pipe)) {
@@ -41,6 +49,11 @@ export function installConsoleOverride(pipe: LogPipe | Array<LogPipe>): void {
 /** Removes the given pipe from the active console overrides. */
 export function uninstallConsoleOverride(pipe: LogPipe | Array<LogPipe>): void {
     const pipes = Array.isArray(pipe) ? pipe : [pipe];
+    uninstallConsoleOverrides(...pipes);
+}
+
+/** Removes the given pipes from the active console overrides. */
+export function uninstallConsoleOverrides(...pipes: Array<LogPipe>): void {
     for (const pipe of pipes) {
         for (let pipeIndex = consoleOverrides.indexOf(pipe); pipeIndex >= 0; pipeIndex = consoleOverrides.indexOf(pipe)) {
             const removedPipe = consoleOverrides.splice(pipeIndex, 1)[0];
