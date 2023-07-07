@@ -59,3 +59,13 @@ NoopPipe does nothing and proxies all parameters to the next pipe with no change
 
 It can be used to reduce a client-side boilerplate code.
 
+## Utility methods and types
+- [LogPipe](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
+- [installConsoleOverrides](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
+- [uninstallConsoleOverrides](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
+- [uninstallAllConsoleOverrides](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
+- [getConsoleOverrides](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
+- [getOriginalConsoleMethods](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
+- [simplifyJson](https://github.com/mfursov/logpipes/blob/master/src/JsonSimplifier.ts)
+- [simplifyValue](https://github.com/mfursov/logpipes/blob/master/src/JsonSimplifier.ts)
+
