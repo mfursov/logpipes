@@ -223,7 +223,7 @@ describe('JsonPipe', () => {
         it('generate unique message ids', () => {
             const pipe = createJsonPipe();
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName as string];
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
             expect(id).toBeTruthy();
             expect(isUuid(id)).toBe(true);
         });
@@ -239,21 +239,21 @@ describe('JsonPipe', () => {
         it('does not generate messageId if asked', () => {
             const pipe = createJsonPipe({idPropertyName: null});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName as string];
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
             expect(id).toBeUndefined();
         });
 
         it('does not generate messageId if asked', () => {
             const pipe = createJsonPipe({idPropertyName: null});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName as string];
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
             expect(id).toBeUndefined();
         });
 
         it('uses message id value provider', () => {
             const pipe = createJsonPipe({idPropertyProvider: () => 'my-value'});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName as string];
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
             expect(id).toBe('my-value');
         });
     });

@@ -83,7 +83,11 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
     isTopLevelProperty: (propertyName: string) => boolean;
 }
 
-export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions> = {
+export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions & {
+    levelPropertyName: string,
+    timestampPropertyName: string,
+    idPropertyName: string
+}> = {
     ...DEFAULT_JSON_SIMPLIFIER_OPTIONS,
     messagePropertyName: 'message',
 

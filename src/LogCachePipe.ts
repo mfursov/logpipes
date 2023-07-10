@@ -39,6 +39,8 @@ export interface LogCachePipeOptions {
 /** A cached message model. */
 export interface LogCachePipeMessage {
     level: LogLevel;
+    /** Time the message was cached. */
+    timestamp: number;
     args: unknown[];
 }
 
@@ -81,7 +83,7 @@ export function createLogCachePipe(inputOptions: Partial<LogCachePipeOptions> = 
                 cache.size--;
             }
         }
-        const newMessageNode: LinkedListNode<LogCachePipeMessage> = {value: {level, args}};
+        const newMessageNode: LinkedListNode<LogCachePipeMessage> = {value: {level, args, timestamp: Date.now()}};
         if (cache.last === undefined) {
             cache.first = newMessageNode;
         } else {

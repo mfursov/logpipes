@@ -1,5 +1,5 @@
 import {describe, expect, it} from '@jest/globals';
-import {createLogCachePipe} from '../src';
+import {createLogCachePipe, LogCachePipeMessage} from '../src';
 
 describe('LogCachePipe', () => {
 
@@ -9,15 +9,17 @@ describe('LogCachePipe', () => {
         pipe('debug', {m: 2});
         pipe('error', {m: 3});
         let messages = pipe.getMessages();
+        resetTimestamps(messages);
         expect(messages).toEqual([
-            {level: 'debug', args: [{m: 2}]},
-            {level: 'error', args: [{m: 3}]},
+            {level: 'debug', timestamp: 0, args: [{m: 2}]},
+            {level: 'error', timestamp: 0, args: [{m: 3}]},
         ]);
         pipe('info', {m: 4});
         messages = pipe.getMessages();
+        resetTimestamps(messages);
         expect(messages).toEqual([
-            {level: 'error', args: [{m: 3}]},
-            {level: 'info', args: [{m: 4}]},
+            {level: 'error', timestamp: 0, args: [{m: 3}]},
+            {level: 'info', timestamp: 0, args: [{m: 4}]},
         ]);
     });
 
@@ -38,9 +40,10 @@ describe('LogCachePipe', () => {
             onCacheSizeReached: p => {
                 const messages = p.getMessages();
                 expect(messages.length).toBe(2);
+                resetTimestamps(messages);
                 expect(messages).toEqual([
-                    {level: 'trace', args: [{m: 1}]},
-                    {level: 'debug', args: [{m: 2}]},
+                    {level: 'trace', timestamp: 0, args: [{m: 1}]},
+                    {level: 'debug', timestamp: 0, args: [{m: 2}]},
                 ]);
                 onCacheSizeReachedCallCount++;
             },
@@ -50,9 +53,10 @@ describe('LogCachePipe', () => {
         pipe('error', {m: 3});
         expect(onCacheSizeReachedCallCount).toBe(1);
         const messages = pipe.getMessages();
+        resetTimestamps(messages);
         expect(messages).toEqual([
-            {level: 'debug', args: [{m: 2}]},
-            {level: 'error', args: [{m: 3}]},
+            {level: 'debug', timestamp: 0, args: [{m: 2}]},
+            {level: 'error', timestamp: 0, args: [{m: 3}]},
         ]);
     });
 
@@ -81,7 +85,8 @@ describe('LogCachePipe', () => {
         pipe('debug', {m: 2});
         pipe('error', {m: 3});
         const messages = pipe.getMessages();
-        expect(messages).toEqual([{level: 'error', args: [{m: 3}]}]);
+        resetTimestamps(messages);
+        expect(messages).toEqual([{level: 'error', timestamp: 0, args: [{m: 3}]}]);
     });
 
     it('does not allow bad cache size value', () => {
@@ -117,10 +122,31 @@ describe('LogCachePipe', () => {
         pipe('info', {m: 3}); // Overflow.
         expect(onCacheSizeReachedCallCount).toBe(1);
         const messages = pipe.getMessages();
+        resetTimestamps(messages);
         expect(messages).toEqual([
-            {level: 'info', args: [{m: 2}]},
-            {level: 'info', args: [{m: 3}]},
+            {level: 'info', timestamp: 0, args: [{m: 2}]},
+            {level: 'info', timestamp: 0, args: [{m: 3}]},
         ]);
     });
 
+    it('adds correct timestamp to messages', () => {
+        const pipe = createLogCachePipe();
+
+        const before = Date.now();
+        pipe('log', 'hello');
+        const after = Date.now();
+
+        const messages = pipe.getMessages();
+        expect(messages.length).toBe(1);
+        expect(messages[0].timestamp).toBeGreaterThanOrEqual(before);
+        expect(messages[0].timestamp).toBeLessThanOrEqual(after);
+    });
+
 });
+
+function resetTimestamps(messages: Array<LogCachePipeMessage>, timestamp = 0): void {
+    for (const m of messages) {
+        expect(m.timestamp > 0);
+        m.timestamp = timestamp;
+    }
+}
