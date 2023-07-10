@@ -24,18 +24,24 @@ Produces a one-liner string with a serialized JSON:
 
 ## Pipes
 
-### JsonStringifyPipe
+### JsonPipe
 
-JsonStringifyPipe converts console log arguments into a single-line string with a serialized JSON inside.
+JsonPipe converts console log arguments into a single serializable JSON object.
 
-The pipe accepts `JsonStringifyPipeOptions` which inherits all `JsonSimplifierOptions`.
+The pipe accepts `JsonPipeOptions` which inherits all `JsonSimplifierOptions`.
 
 See in-code docs for the available options:
 
 - [JsonSimplifierOptions](https://github.com/mfursov/logpipes/tree/master/src/JsonSimplifier.ts)
-- [JsonStringifyPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/JsonStringifyPipe.ts)
+- [JsonPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/JsonPipe.ts)
 
 Check [unit tests](https://github.com/mfursov/logpipes/tree/master/tests) for more examples.
+
+### JsonStringifyPipe
+
+JsonStringifyPipe calls JsonPipe and converts the result JSON object into a single line string.
+
+See docs for `JsonPipe` for more details.
 
 ### LogLevelFilterPipe
 
@@ -60,6 +66,7 @@ NoopPipe does nothing and proxies all parameters to the next pipe with no change
 It can be used to reduce a client-side boilerplate code.
 
 ## Utility methods and types
+
 - [LogPipe](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
 - [installConsoleOverrides](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
 - [uninstallConsoleOverrides](https://github.com/mfursov/logpipes/blob/master/src/ConsoleOverrides.ts)
