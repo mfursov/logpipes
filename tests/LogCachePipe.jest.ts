@@ -1,12 +1,17 @@
 import {describe, expect, it} from '@jest/globals';
-import {createLogCachePipe, LogCachePipeMessage} from '../src';
+import {createLogCachePipe, estimateArgsSizeByStringify, LogCachePipeMessage} from '../src';
 
 describe('LogCachePipe', () => {
 
     it('caches cacheSize messages', () => {
         const pipe = createLogCachePipe({cacheSize: 2});
+
         pipe('trace', {m: 1});
+        expect(pipe.getMessages().length).toBe(1);
+
         pipe('debug', {m: 2});
+        expect(pipe.getMessages().length).toBe(2);
+
         pipe('error', {m: 3});
         let messages = pipe.getMessages();
         resetTimestamps(messages);
@@ -14,6 +19,7 @@ describe('LogCachePipe', () => {
             {level: 'debug', timestamp: 0, args: [{m: 2}]},
             {level: 'error', timestamp: 0, args: [{m: 3}]},
         ]);
+
         pipe('info', {m: 4});
         messages = pipe.getMessages();
         resetTimestamps(messages);
@@ -39,11 +45,11 @@ describe('LogCachePipe', () => {
             cacheSize: 2,
             onCacheSizeReached: p => {
                 const messages = p.getMessages();
-                expect(messages.length).toBe(2);
                 resetTimestamps(messages);
                 expect(messages).toEqual([
                     {level: 'trace', timestamp: 0, args: [{m: 1}]},
                     {level: 'debug', timestamp: 0, args: [{m: 2}]},
+                    {level: 'error', timestamp: 0, args: [{m: 3}]},
                 ]);
                 onCacheSizeReachedCallCount++;
             },
@@ -86,7 +92,7 @@ describe('LogCachePipe', () => {
         pipe('error', {m: 3});
         const messages = pipe.getMessages();
         resetTimestamps(messages);
-        expect(messages).toEqual([{level: 'error', timestamp: 0, args: [{m: 3}]}]);
+        expect(messages).toEqual([]);
     });
 
     it('does not allow bad cache size value', () => {
@@ -142,6 +148,83 @@ describe('LogCachePipe', () => {
         expect(messages[0].timestamp).toBeLessThanOrEqual(after);
     });
 
+    it('does not allow data overflow when cacheSizeByStringify is used', () => {
+        const pipe = createLogCachePipe({cacheSizeByStringify: 3});
+        pipe('log', '1'); // Adds +3.
+        expect(pipe.getMessages().length).toBe(1);
+        pipe('log', '1'); // Adds +3.
+        expect(pipe.getMessages().length).toBe(1); // The first message was dropped.
+        pipe('log', '1000'); // Adds +6.
+        expect(pipe.getMessages().length).toBe(0); // Even 1 message is too big for the cache.
+    });
+
+    it(`calls onCacheSizeReached when cacheSizeByStringify limit is reached before the cleanup`, () => {
+        let onCacheSizeReachedCallCount = 0;
+        let expectedMessages: Array<LogCachePipeMessage> = [];
+        const pipe = createLogCachePipe({
+            cacheSizeByStringify: 3,
+            onCacheSizeReached: p => {
+                const messages = p.getMessages();
+                resetTimestamps(messages);
+                expect(messages).toEqual(expectedMessages);
+                onCacheSizeReachedCallCount++;
+            },
+        });
+        pipe('log', '1'); // Adds +3.
+        expect(onCacheSizeReachedCallCount).toBe(0);
+
+        expectedMessages = [
+            {level: 'log', timestamp: 0, args: ['1']},
+            {level: 'log', timestamp: 0, args: ['2']}
+        ];
+        pipe('log', '2'); // Adds +3.
+        expect(onCacheSizeReachedCallCount).toBe(1);
+
+
+        expectedMessages = [
+            {level: 'log', timestamp: 0, args: ['2']},
+            {level: 'log', timestamp: 0, args: ['3']}
+        ];
+        pipe('log', '3'); // Adds +3.
+        expect(onCacheSizeReachedCallCount).toBe(2);
+
+        expect(pipe.getMessages()).toEqual([{level: 'log', timestamp: 0, args: ['3']}]);
+    });
+});
+
+describe('estimateArgsSizeByStringify', () => {
+    const f = estimateArgsSizeByStringify;
+    it('handles undefined values', () => {
+        expect(f()).toBe(0);
+        expect(f(undefined)).toBe(0);
+    });
+
+    it('handles strings', () => {
+        expect(f('12345')).toBe(7);
+    });
+
+    it('handles numbers', () => {
+        expect(f(1)).toBe(1);
+        expect(f(12)).toBe(2);
+        expect(f(0.1)).toBe(3);
+    });
+
+    it('handles booleans', () => {
+        expect(f(true)).toBe(4);
+        expect(f(false)).toBe(5);
+    });
+
+    it('handles arrays', () => {
+        expect(f([])).toBe(2);
+        expect(f([1])).toBe(3);
+        expect(f([1, 2, 3])).toBe(7);
+    });
+
+    it('handles objects', () => {
+        expect(f({})).toBe(2);
+        expect(f({foo: 1})).toBe(9);
+        expect(f({foo: {boo: 1}})).toBe(17);
+    });
 });
 
 function resetTimestamps(messages: Array<LogCachePipeMessage>, timestamp = 0): void {
