@@ -1,38 +1,7 @@
 import {describe, expect, it} from '@jest/globals';
-import {createJsonPipe, DEFAULT_JSON_PIPE_OPTIONS, JsonPipeOptions, LogPipe, pickTopLevelProperties} from '../src';
+import {createJsonPipe, DEFAULT_JSON_PIPE_OPTIONS, JsonPipeOptions, LogPipe,} from '../src';
 
 describe('JsonPipe', () => {
-
-    const symbolPropertyName = Symbol('symbol');
-
-    describe('pickTopLevelProperties', () => {
-        it('picks correct properties with a default picker', () => {
-            const obj = {a: 0, '@a': 1, b: 2, '': 3, 4: 4} as Record<string | number | symbol, unknown>;
-            obj[symbolPropertyName] = 5;
-            const result = pickTopLevelProperties(obj);
-            expect(result).toEqual({'@a': 1});
-        });
-
-        it('picks correct properties with a custom picker', () => {
-            const obj = {a: 0, '@a': 1, b: 2, '': 3, 4: 4, 22: 22} as Record<string | number | symbol, unknown>;
-            obj[symbolPropertyName] = 5;
-            const result = pickTopLevelProperties(obj, {isTopLevelProperty: propertyName => propertyName.length === 1});
-            expect(result).toEqual({a: 0, b: 2, '4': 4} as Record<string, unknown>);
-        });
-
-        it('does not picks symbols or numbers', () => {
-            const obj = {1: 1} as Record<string | number | symbol, unknown>;
-            obj[symbolPropertyName] = 5;
-            const result = pickTopLevelProperties(obj, {isTopLevelProperty: () => true});
-            expect(result).toEqual({'1': 1});
-        });
-
-        it('does not picks system properties', () => {
-            const obj = {a: 1, b: 2};
-            const result = pickTopLevelProperties(obj, {isTopLevelProperty: () => true, ignoredPropertyNames: ['b']});
-            expect(result).toEqual({a: 1});
-        });
-    });
 
     describe('createJsonPipe', () => {
         function createJsonPipeNoAttributes(options: Partial<JsonPipeOptions> = {}): LogPipe {
@@ -98,6 +67,14 @@ describe('JsonPipe', () => {
             expect(result).toEqual([{'message': 'Hello, World'}]);
         });
 
+        it('ignores properties with a symbol key', () => {
+            const pipe = createJsonPipeNoAttributes();
+            const object: Record<symbol | string, unknown> = {};
+            object[Symbol('symbol')] = 'Ignored';
+            const result = pipe('log', object);
+            expect(result).toEqual([{'message': '$1', '$1': {}}]);
+        });
+
         it('assigns continues indexes only for object properties', () => {
             const pipe = createJsonPipeNoAttributes();
             const result = pipe('log', '1', {a: 'a'}, '2', 3, {'b': 'b'});
@@ -110,34 +87,16 @@ describe('JsonPipe', () => {
             expect(result).toEqual([{'message': 'Hello, $1', '$1': [1, true, '3']}]);
         });
 
-        it('supports top level properties with a default matcher', () => {
-            const pipe = createJsonPipeNoAttributes();
-            const result = pipe('log', 'Hello,', {'@world': 'World'});
-            expect(result).toEqual([{'message': 'Hello, $1', '@world': 'World', '$1': {}}]);
-        });
-
-        it('supports top level properties with a custom matcher', () => {
-            const pipe = createJsonPipeNoAttributes({isTopLevelProperty: name => name.startsWith('#')});
-            const result = pipe('log', 'Hello,', {'#world': 'World'});
-            expect(result).toEqual([{'message': 'Hello, $1', '#world': 'World', '$1': {}}]);
-        });
-
-        it(`top level properties can't overwrite built-in properties (like 'message')`, () => {
-            const pipe = createJsonPipeNoAttributes();
-            const result = pipe('log', 'Hello,', {'message': 'World'});
-            expect(result).toEqual([{'message': 'Hello, $1', '$1': {'message': 'World'}}]);
-        });
-
-        it(`adds '@timestamp' and 'level'`, () => {
+        it(`adds 'timestamp' and 'level'`, () => {
             const pipe = createJsonPipe({
                 timestampPropertyFormatter: () => 'formatted-timestamp',
                 idPropertyName: null,
             });
             const result = pipe('log', 'Hello');
-            expect(result).toEqual([{'message': 'Hello', 'level': 'log', '@timestamp': 'formatted-timestamp'}]);
+            expect(result).toEqual([{'message': 'Hello', 'level': 'log', 'timestamp': 'formatted-timestamp'}]);
         });
 
-        it(`support custom of '@timestamp' and 'level' properties`, () => {
+        it(`support custom of 'timestamp' and 'level' properties`, () => {
             const pipe = createJsonPipe({
                 levelPropertyName: 'category',
                 levelPropertyFormatter: level => `[${level.toUpperCase()}]`,
@@ -218,6 +177,12 @@ describe('JsonPipe', () => {
             const pipe = createJsonPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
             const result = pipe('log', 'Hello', {body: false});
             expect(result).toEqual([{'message': 'Hello $body:[false]'}]);
+        });
+
+        it('pickFieldNameAsObjectMessageTokenForSingleFieldObjects resolves duplicates', () => {
+            const pipe = createJsonPipeNoAttributes({pickFieldNameAsObjectMessageTokenForSingleFieldObjects: true});
+            const result = pipe('log', 'Hello', {foo: {text: 'foo1'}}, {foo: {text: 'foo2'}});
+            expect(result).toEqual([{'message': 'Hello $foo $1', '$foo': {text: 'foo1'}, '$1': {foo: {text: 'foo2'}}}]);
         });
 
         it('generate unique message ids', () => {

@@ -1,6 +1,7 @@
 import {describe, expect, it} from '@jest/globals';
 import {createJsonStringifyPipe, JsonStringifyPipeOptions, LogPipe} from '../src';
 
+
 describe('JsonStringifyPipe', () => {
     function createJsonStringifyPipeNoAttributes(options: Partial<JsonStringifyPipeOptions> = {}): LogPipe {
         return createJsonStringifyPipe({

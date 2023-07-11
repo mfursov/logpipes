@@ -74,13 +74,6 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
      * The default value is <undefined> which results the fields with undefined value be excluded from the log.
      */
     undefinedMessageValue: undefined | string;
-
-    /**
-     * If an object parameter of console.log() contains a top-level property marked as isTopLevelProperty,
-     * the property is moved from the object to the top-level JSON
-     * (same level as 'message', '@timestamp', '@level' fields).
-     */
-    isTopLevelProperty: (propertyName: string) => boolean;
 }
 
 export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions & {
@@ -89,18 +82,18 @@ export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions & {
     idPropertyName: string
 }> = {
     ...DEFAULT_JSON_SIMPLIFIER_OPTIONS,
+
     messagePropertyName: 'message',
 
     levelPropertyName: 'level',
     levelPropertyFormatter: level => level,
 
-    timestampPropertyName: '@timestamp',
+    timestampPropertyName: 'timestamp',
     timestampPropertyFormatter: timeInMillis => new Date(timeInMillis).toISOString(),
 
-    idPropertyName: '@messageId',
+    idPropertyName: 'messageId',
     idPropertyProvider: generateUuidSimple,
 
-    isTopLevelProperty: propertyName => propertyName.startsWith('@'),
     isIgnoredProperty: () => false,
     getObjectMessageToken: argumentIndex => `$${argumentIndex + 1}`,
     pickFieldNameAsObjectMessageTokenForSingleFieldObjects: false,
@@ -112,10 +105,6 @@ export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions & {
  */
 export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): LogPipe {
     const options: JsonPipeOptions = {...DEFAULT_JSON_PIPE_OPTIONS, ...inputOptions};
-    const topLevelPickerOptions: PickTopLevelPropertiesOptions = {
-        isTopLevelProperty: options.isTopLevelProperty,
-        ignoredPropertyNames: [options.messagePropertyName],
-    };
     return (level, ...args) => {
         const resultJson: Record<string, unknown> = {};
         let message: string | undefined = undefined;
@@ -125,31 +114,28 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Log
             const arg = simplifyValue(args[argIndex]);
             let messageToken = arg;
             if (typeof arg === 'object' && arg !== null) {
-                const topLevelProperties = pickTopLevelProperties(arg, topLevelPickerOptions);
-                for (const [topLevelPropertyName, topLevelPropertyValue] of Object.entries(topLevelProperties)) {
-                    resultJson[topLevelPropertyName] = topLevelPropertyValue;
-                }
-                // Add top-level properties to the list of ignored when calling convertToSafeJson.
-                const simplifyOptions: JsonSimplifierOptions = {
-                    ...options,
-                    isIgnoredProperty: name => options.isIgnoredProperty(name) || name in topLevelProperties
-                };
-                let childValue = simplifyJson(arg, simplifyOptions);
+                let childValue = simplifyJson(arg, options);
                 if (options.pickFieldNameAsObjectMessageTokenForSingleFieldObjects
                     && typeof childValue === 'object'
                     && childValue !== null
-                    && Object.keys(childValue).length === 1) {
-                    const [childFieldName, childFieldValue] = Object.entries(childValue)[0];
-                    messageToken = `$${childFieldName}`;
-                    if (isInlinedObjectMessageTokenValue(childFieldValue)) {
-                        const quote = typeof childFieldValue === 'string' ? '\'' : '';
-                        messageToken += `:[${quote}${childFieldValue}${quote}]`;
-                        childValue = undefined;
-                    } else {
-                        childValue = childFieldValue;
+                ) {
+                    const childValueEntries = Object.entries(childValue);
+                    if (childValueEntries.length === 1) {
+                        const [childFieldName, childFieldValue] = childValueEntries[0];
+                        const newMessageToken = `$${childFieldName}`;
+                        if (resultJson[newMessageToken] === undefined) {
+                            messageToken = newMessageToken;
+                            if (isInlinedObjectMessageTokenValue(childFieldValue)) {
+                                const quote = typeof childFieldValue === 'string' ? '\'' : '';
+                                messageToken += `:[${quote}${childFieldValue}${quote}]`;
+                                childValue = undefined;
+                            } else {
+                                childValue = childFieldValue;
+                            }
+                        }
                     }
-                    // messageArgIndex is not increased to stay continuous.
-                } else {
+                }
+                if (typeof messageToken !== 'string') {
                     messageToken = options.getObjectMessageToken(messageArgIndex, arg, argIndex);
                     messageArgIndex++;
                 }
@@ -179,29 +165,10 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Log
     };
 }
 
-export interface PickTopLevelPropertiesOptions {
-    isTopLevelProperty: (propertyName: string) => boolean;
-    ignoredPropertyNames: string[];
-}
-
-export function pickTopLevelProperties(obj: object,
-                                       inputOptions: Partial<PickTopLevelPropertiesOptions> = {}
-): Record<string, unknown> {
-    const options = {
-        isTopLevelProperty: DEFAULT_JSON_PIPE_OPTIONS.isTopLevelProperty,
-        ignoredPropertyNames: [],
-        ...inputOptions,
-    };
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj)) {
-        if (options.isTopLevelProperty(key) && !options.ignoredPropertyNames.includes(key)) {
-            result[key] = value;
-        }
-    }
-    return result;
-}
-
-/** Returns 'true' if the value can be inlined as a part of 'pickFieldNameAsObjectMessageTokenForSingleFieldObjects' transformation. */
+/**
+ *  Returns 'true' if the value can be inlined as a part of the
+ * 'pickFieldNameAsObjectMessageTokenForSingleFieldObjects' transformation.
+ */
 function isInlinedObjectMessageTokenValue(value: unknown): boolean {
     return value === null ||
         typeof value === 'string' ||

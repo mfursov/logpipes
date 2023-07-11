@@ -26,7 +26,14 @@ describe('JsonSimplifier', () => {
             expect(result).toEqual({});
         });
 
-        it('filters out symbols as keys', () => {
+        it('filters out symbols as keys, 1', () => {
+            const obj = {} as Record<symbol, unknown>;
+            obj[symbolPropertyName] = '456';
+            const result = simplifyJson(obj);
+            expect(result).toEqual({});
+        });
+
+        it('filters out symbols as keys, 2', () => {
             const obj = {stringProperty: '123'} as Record<symbol | string, unknown>;
             obj[symbolPropertyName] = '456';
             const result = simplifyJson(obj);
