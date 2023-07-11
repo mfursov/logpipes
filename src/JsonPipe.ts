@@ -22,7 +22,7 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
     /**
      * Timestamp property name.
      * If <null>, no timestamp is added to the result JSON.
-     * Default: '@timestamp'.
+     * Default: 'timestamp'.
      */
     timestampPropertyName: string | null;
 
@@ -32,7 +32,7 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
     /**
      * Message id property name.
      * If <null>, no message id is added to the result JSON.
-     * Default: '@messageId'.
+     * Default: 'id'.
      */
     idPropertyName: string | null;
 
@@ -91,7 +91,7 @@ export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions & {
     timestampPropertyName: 'timestamp',
     timestampPropertyFormatter: timeInMillis => new Date(timeInMillis).toISOString(),
 
-    idPropertyName: 'messageId',
+    idPropertyName: 'id',
     idPropertyProvider: generateUuidSimple,
 
     isIgnoredProperty: () => false,

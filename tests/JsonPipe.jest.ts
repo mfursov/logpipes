@@ -193,7 +193,7 @@ describe('JsonPipe', () => {
             expect(isUuid(id)).toBe(true);
         });
 
-        it('allow message id field name override', () => {
+        it(`allow 'id' field name override`, () => {
             const pipe = createJsonPipe({idPropertyName: 'my-field-name'});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
             const id = result['my-field-name'];
@@ -201,14 +201,7 @@ describe('JsonPipe', () => {
             expect(isUuid(id)).toBe(true);
         });
 
-        it('does not generate messageId if asked', () => {
-            const pipe = createJsonPipe({idPropertyName: null});
-            const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
-            expect(id).toBeUndefined();
-        });
-
-        it('does not generate messageId if asked', () => {
+        it(`does not generate 'id' field if asked`, () => {
             const pipe = createJsonPipe({idPropertyName: null});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
             const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
