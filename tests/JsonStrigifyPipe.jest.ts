@@ -7,7 +7,7 @@ describe('JsonStringifyPipe', () => {
         return createJsonStringifyPipe({
             levelPropertyName: null,
             timestampPropertyName: null,
-            idPropertyName: null,
+            messageIdPropertyName: null,
             ...options,
         });
     }

@@ -11,7 +11,7 @@ describe('JsonPipe', () => {
                 ...options,
                 levelPropertyName: null,
                 timestampPropertyName: null,
-                idPropertyName: null,
+                messageIdPropertyName: null,
             });
         }
 
@@ -92,7 +92,7 @@ describe('JsonPipe', () => {
         it(`adds 'timestamp' and 'level'`, () => {
             const pipe = createJsonPipe({
                 timestampPropertyFormatter: () => 'formatted-timestamp',
-                idPropertyName: null,
+                messageIdPropertyName: null,
             });
             const result = pipe('log', 'Hello');
             expect(result).toEqual([{'message': 'Hello', 'level': 'log', 'timestamp': 'formatted-timestamp'}]);
@@ -104,7 +104,7 @@ describe('JsonPipe', () => {
                 levelPropertyFormatter: level => `[${level.toUpperCase()}]`,
                 timestampPropertyName: 'date',
                 timestampPropertyFormatter: () => 'formatted-timestamp',
-                idPropertyName: null,
+                messageIdPropertyName: null,
             });
             const result = pipe('debug', 'Hello');
             expect(result).toEqual([{'message': 'Hello', 'category': '[DEBUG]', 'date': 'formatted-timestamp'}]);
@@ -190,13 +190,13 @@ describe('JsonPipe', () => {
         it('generate unique message ids', () => {
             const pipe = createJsonPipe();
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.messageIdPropertyName];
             expect(id).toBeTruthy();
             expect(isUuid(id)).toBe(true);
         });
 
         it(`allow 'id' field name override`, () => {
-            const pipe = createJsonPipe({idPropertyName: 'my-field-name'});
+            const pipe = createJsonPipe({messageIdPropertyName: 'my-field-name'});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
             const id = result['my-field-name'];
             expect(id).toBeTruthy();
@@ -204,16 +204,16 @@ describe('JsonPipe', () => {
         });
 
         it(`does not generate 'id' field if asked`, () => {
-            const pipe = createJsonPipe({idPropertyName: null});
+            const pipe = createJsonPipe({messageIdPropertyName: null});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.messageIdPropertyName];
             expect(id).toBeUndefined();
         });
 
         it('uses message id value provider', () => {
-            const pipe = createJsonPipe({idPropertyProvider: () => 'my-value'});
+            const pipe = createJsonPipe({messageIdPropertyProvider: () => 'my-value'});
             const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
-            const id = result[DEFAULT_JSON_PIPE_OPTIONS.idPropertyName];
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.messageIdPropertyName];
             expect(id).toBe('my-value');
         });
     });
