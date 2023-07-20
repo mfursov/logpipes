@@ -19,7 +19,7 @@ console.log('Log after pipe is installed', {a: 1, b: 2, c: 3});
 Produces a one-liner string with a serialized JSON:
 
 ```
-'{"message":"Log after pipe is installed $1","$1":{"a":1,"b":2,"c":3},"level":"log","timestamp":"2023-07-03T17:13:56.018Z","id":"some-uuid"}'
+'{"message":"Log after pipe is installed $1","$1":{"a":1,"b":2,"c":3},"level":"log","timestamp":"2023-07-03T17:13:56.018Z","id":"current-log-message-uuid"}'
 ```
 
 ## Pipes

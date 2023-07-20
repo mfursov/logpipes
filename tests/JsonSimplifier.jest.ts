@@ -1,7 +1,9 @@
 // noinspection JSPrimitiveTypeWrapperUsage
 
 import {describe, expect, it} from '@jest/globals';
-import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from '../src';
+import {getDefaultJsonSimplifierOptions, JsonSimplifierOptions, simplifyJson, simplifyValue} from '../src';
+
+const DEFAULT_JSON_SIMPLIFIER_OPTIONS = getDefaultJsonSimplifierOptions();
 
 describe('JsonSimplifier', () => {
 

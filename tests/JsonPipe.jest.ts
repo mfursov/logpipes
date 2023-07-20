@@ -1,5 +1,7 @@
 import {describe, expect, it} from '@jest/globals';
-import {createJsonPipe, DEFAULT_JSON_PIPE_OPTIONS, JsonPipeOptions, LogPipe,} from '../src';
+import {createJsonPipe, getDefaultJsonPipeOptions, JsonPipeOptions, LogPipe,} from '../src';
+
+const DEFAULT_JSON_PIPE_OPTIONS = getDefaultJsonPipeOptions();
 
 describe('JsonPipe', () => {
 

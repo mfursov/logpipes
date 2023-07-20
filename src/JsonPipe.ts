@@ -1,4 +1,4 @@
-import {DEFAULT_JSON_SIMPLIFIER_OPTIONS, JsonSimplifierOptions, simplifyJson, simplifyValue} from './JsonSimplifier';
+import {getDefaultJsonSimplifierOptions, JsonSimplifierOptions, simplifyJson, simplifyValue} from './JsonSimplifier';
 import {LogLevel, LogPipe} from './ConsoleOverrides';
 
 /** Options for JsonPipe. */
@@ -76,35 +76,35 @@ export interface JsonPipeOptions extends JsonSimplifierOptions {
     undefinedMessageValue: undefined | string;
 }
 
-export const DEFAULT_JSON_PIPE_OPTIONS: Readonly<JsonPipeOptions & {
-    levelPropertyName: string,
-    timestampPropertyName: string,
-    idPropertyName: string
-}> = {
-    ...DEFAULT_JSON_SIMPLIFIER_OPTIONS,
+/** Returns default properties used by 'createJsonPipe'. */
+export function getDefaultJsonPipeOptions()
+    : JsonPipeOptions & { levelPropertyName: string, timestampPropertyName: string, idPropertyName: string } {
+    return {
+        ...getDefaultJsonSimplifierOptions(),
 
-    messagePropertyName: 'message',
+        messagePropertyName: 'message',
 
-    levelPropertyName: 'level',
-    levelPropertyFormatter: level => level,
+        levelPropertyName: 'level',
+        levelPropertyFormatter: level => level,
 
-    timestampPropertyName: 'timestamp',
-    timestampPropertyFormatter: timeInMillis => new Date(timeInMillis).toISOString(),
+        timestampPropertyName: 'timestamp',
+        timestampPropertyFormatter: timeInMillis => new Date(timeInMillis).toISOString(),
 
-    idPropertyName: 'id',
-    idPropertyProvider: generateUuidSimple,
+        idPropertyName: 'id',
+        idPropertyProvider: generateUuidSimple,
 
-    isIgnoredProperty: () => false,
-    getObjectMessageToken: argumentIndex => `$${argumentIndex + 1}`,
-    pickFieldNameAsObjectMessageTokenForSingleFieldObjects: false,
-    undefinedMessageValue: undefined,
-};
+        isIgnoredProperty: () => false,
+        getObjectMessageToken: argumentIndex => `$${argumentIndex + 1}`,
+        pickFieldNameAsObjectMessageTokenForSingleFieldObjects: false,
+        undefinedMessageValue: undefined,
+    };
+}
 
 /**
  * Creates a pipe that converts console arguments into a serializable JSON object.
  */
 export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): LogPipe {
-    const options: JsonPipeOptions = {...DEFAULT_JSON_PIPE_OPTIONS, ...inputOptions};
+    const options: JsonPipeOptions = {...getDefaultJsonPipeOptions(), ...inputOptions};
     return (level, ...args) => {
         const resultJson: Record<string, unknown> = {};
         let message: string | undefined = undefined;
@@ -184,6 +184,7 @@ function isInlinedObjectMessageTokenValue(value: unknown): boolean {
  */
 export function generateUuidSimple(): string {
     let datePart = Date.now();
+    // noinspection SpellCheckingInspection
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const randomPart = (datePart + Math.floor(Math.random() * 16)) % 16;
         datePart = Math.floor(datePart / 16);

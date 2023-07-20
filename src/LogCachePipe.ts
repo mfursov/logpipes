@@ -18,7 +18,7 @@ export interface LogCachePipe extends LogPipe {
 export interface LogCachePipeOptions {
     /**
      * How many messages to keep in the cache.
-     * Once the limit is reached and a new message arrives, arrives, onCacheSizeReached is called and
+     * Once the limit is reached and a new message arrives, 'onCacheSizeReached' is called and
      * the oldest message is removed from the cache.
      *
      * Default: 1000.
@@ -61,13 +61,15 @@ export interface LogCachePipeMessage {
     args: unknown[];
 }
 
-export const DEFAULT_LOG_CACHE_PIPE_OPTIONS: LogCachePipeOptions = {
-    /** Keeps only 1000 messages in the cache by default. */
-    cacheSize: 1000,
+export function getDefaultLogCachePipeOptions(): LogCachePipeOptions {
+    return {
+        /** Keeps only 1000 messages in the cache by default. */
+        cacheSize: 1000,
 
-    /** Do not use estimation by data size by default. */
-    cacheSizeByStringify: -1,
-};
+        /** Do not use estimation by data size by default. */
+        cacheSizeByStringify: -1,
+    };
+}
 
 interface LinkedListNode<T> {
     value: T;
@@ -75,7 +77,7 @@ interface LinkedListNode<T> {
 }
 
 export function createLogCachePipe(inputOptions: Partial<LogCachePipeOptions> = {}): LogCachePipe {
-    const options = {...DEFAULT_LOG_CACHE_PIPE_OPTIONS, ...inputOptions};
+    const options = {...getDefaultLogCachePipeOptions(), ...inputOptions};
     if (options.cacheSize < 0 || isNaN(options.cacheSize)) {
         throw new Error(`Invalid cache size: ${options.cacheSize}`);
     }

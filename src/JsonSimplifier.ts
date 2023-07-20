@@ -68,19 +68,24 @@ export interface JsonSimplifierOptions {
     symbolValue: string;
 }
 
-export const DEFAULT_JSON_SIMPLIFIER_OPTIONS: Readonly<JsonSimplifierOptions> = {
-    maxDepthLimit: 10,
-    maxArrayLength: 100,
-    maxObjectPropertyCount: 100,
-    isIgnoredProperty: () => false,
-    replacePropertyValue: (_, value) => value,
-    depthLimitValue: '[Depth limit ~]',
-    arrayLengthLimitValue: '[Array, length: $length ~]',
-    objectPropertyCountLimitValue: '[Object, properties: $count ~]',
-    circularReferenceValue: '[Circular ~]',
-    functionValue: '[Function ~]',
-    symbolValue: '[Symbol ~]',
-};
+/** Returns default properties used by 'simplifyJson' function. */
+export function getDefaultJsonSimplifierOptions(): JsonSimplifierOptions {
+    return {
+        maxDepthLimit: 10,
+        maxArrayLength: 100,
+        maxObjectPropertyCount: 100,
+        isIgnoredProperty: () => false,
+        replacePropertyValue: (_, value) => value,
+        depthLimitValue: '[Depth limit ~]',
+        arrayLengthLimitValue: '[Array, length: $length ~]',
+        objectPropertyCountLimitValue: '[Object, properties: $count ~]',
+        circularReferenceValue: '[Circular ~]',
+        functionValue: '[Function ~]',
+        symbolValue: '[Symbol ~]',
+    };
+}
+
+const DEFAULT_JSON_SIMPLIFIER_OPTIONS = getDefaultJsonSimplifierOptions();
 
 /** Properties aren't returned by Object.entries(), but available on the Error object. */
 const ERROR_OBJECT_PROPERTIES = ['cause', 'message', 'name', 'stack'];
