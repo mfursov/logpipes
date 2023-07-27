@@ -6,7 +6,7 @@
     "declaration": true,
     "downlevelIteration": true,
     "esModuleInterop": true,
-    "module": "commonjs",
+    "module": "ES2015",
     "moduleResolution": "node",
     "noEmitOnError": true,
     "noImplicitAny": true,
