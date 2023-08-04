@@ -100,12 +100,22 @@ export function getDefaultJsonPipeOptions()
     };
 }
 
+export interface JsonPipe extends LogPipe {
+    /**
+     * Returns the last message ID assigned by the pipe.
+     * If no messages were emitted yet contains an empty string.
+     * If 'messageIdPropertyName' is null on the JsonPipe configuration (no ID is assigned), the value stays empty.
+     */
+    getLastMessageId: () => string;
+}
+
 /**
  * Creates a pipe that converts console arguments into a serializable JSON object.
  */
-export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): LogPipe {
+export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): JsonPipe {
     const options: JsonPipeOptions = {...getDefaultJsonPipeOptions(), ...inputOptions};
-    return (level, ...args) => {
+    let lastMessageId = '';
+    const logPipe: LogPipe = (level, ...args) => {
         const resultJson: Record<string, unknown> = {};
         let message: string | undefined = undefined;
         resultJson[options.messagePropertyName] = undefined; // Set it first, so it will be the first property in JSON.
@@ -159,10 +169,14 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Log
             resultJson[options.timestampPropertyName] = options.timestampPropertyFormatter(Date.now());
         }
         if (options.messageIdPropertyName) {
-            resultJson[options.messageIdPropertyName] = options.messageIdPropertyProvider(level, ...args);
+            lastMessageId = options.messageIdPropertyProvider(level, ...args);
+            resultJson[options.messageIdPropertyName] = lastMessageId;
         }
         return [resultJson];
     };
+    const jsonPipe: JsonPipe = logPipe as JsonPipe;
+    jsonPipe.getLastMessageId = (): string => lastMessageId;
+    return jsonPipe;
 }
 
 /**

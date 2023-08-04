@@ -31,4 +31,25 @@ describe('JsonStringifyPipe', () => {
         expect(callbackCallCount).toBe(1);
         expect(result).toEqual([`{"message":"Hello","fieldToAdd":1}`]);
     });
+
+    it('returns correct lastMessageId', () => {
+        const id1 = 'id1';
+        const id2 = 'id2';
+        const pipe = createJsonStringifyPipe({messageIdPropertyProvider: level => level === 'log' ? id1 : id2});
+        expect(pipe.getLastMessageId()).toBe('');
+
+        pipe('log', 'Hello');
+        expect(pipe.getLastMessageId()).toBe(id1);
+
+        pipe('debug', 'Hello');
+        expect(pipe.getLastMessageId()).toBe(id2);
+    });
+
+    it('keeps lastMessageId empty if generation of message id is disabled', () => {
+        const pipe = createJsonStringifyPipe({messageIdPropertyName: null});
+        expect(pipe.getLastMessageId()).toBe('');
+
+        pipe('log', 'Hello');
+        expect(pipe.getLastMessageId()).toBe('');
+    });
 });

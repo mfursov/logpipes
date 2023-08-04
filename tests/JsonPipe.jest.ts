@@ -216,6 +216,31 @@ describe('JsonPipe', () => {
             const id = result[DEFAULT_JSON_PIPE_OPTIONS.messageIdPropertyName];
             expect(id).toBe('my-value');
         });
+
+        it('returns correct lastMessageId', () => {
+            const id1 = 'id1';
+            const id2 = 'id2';
+            const pipe = createJsonPipe({messageIdPropertyProvider: level => level === 'log' ? id1 : id2});
+            expect(pipe.getLastMessageId()).toBe('');
+
+            let result = pipe('log', 'Hello')[0] as Record<string, unknown>;
+            let id = result[DEFAULT_JSON_PIPE_OPTIONS.messageIdPropertyName];
+            expect(id).toBe(id1);
+            expect(pipe.getLastMessageId()).toBe(id1);
+
+            result = pipe('debug', 'Hello')[0] as Record<string, unknown>;
+            id = result[DEFAULT_JSON_PIPE_OPTIONS.messageIdPropertyName];
+            expect(id).toBe(id2);
+            expect(pipe.getLastMessageId()).toBe(id2);
+        });
+
+        it('keeps lastMessageId empty if generation of message id is disabled', () => {
+            const pipe = createJsonPipe({messageIdPropertyName: null});
+            expect(pipe.getLastMessageId()).toBe('');
+
+            pipe('log', 'Hello');
+            expect(pipe.getLastMessageId()).toBe('');
+        });
     });
 });
 

@@ -1,4 +1,4 @@
-import {createJsonPipe, getDefaultJsonPipeOptions, JsonPipeOptions} from './JsonPipe';
+import {createJsonPipe, getDefaultJsonPipeOptions, JsonPipe, JsonPipeOptions} from './JsonPipe';
 import {LogPipe} from './ConsoleOverrides';
 
 /** JsonStringifyPipeOptions are the same as JsonPipeOptions today. */
@@ -19,11 +19,13 @@ export function getDefaultJsonStringifyPipeOptions(): JsonStringifyPipeOptions {
     };
 }
 
+export type JsonStringifyPipe = JsonPipe;
+
 /** Creates a new pipe that will produce a JSON serialized into a single string as a result. */
-export function createJsonStringifyPipe(inputOptions: Partial<JsonStringifyPipeOptions> = {}): LogPipe {
+export function createJsonStringifyPipe(inputOptions: Partial<JsonStringifyPipeOptions> = {}): JsonStringifyPipe {
     const options = {...getDefaultJsonStringifyPipeOptions(), ...inputOptions};
     const jsonPipe = createJsonPipe(options);
-    return (level, ...args) => {
+    const logPipe: LogPipe = (level, ...args) => {
         const jsonPipeResult = jsonPipe(level, ...args) as Array<Record<string, unknown>>;
         if (jsonPipeResult.length === 0) {
             return [];
@@ -32,5 +34,8 @@ export function createJsonStringifyPipe(inputOptions: Partial<JsonStringifyPipeO
         options.preStringifyCallback(json);
         return [JSON.stringify(json)];
     };
+    const jsonStringifyPipe = logPipe as JsonStringifyPipe;
+    jsonStringifyPipe.getLastMessageId = jsonPipe.getLastMessageId;
+    return jsonStringifyPipe;
 }
 
