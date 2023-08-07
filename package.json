@@ -1,7 +1,7 @@
 {
   "name": "logpipes",
   "description": "Console.log transformation pipes",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "private": false,
@@ -10,7 +10,7 @@
     "clean": "rimraf ./dist",
     "lint": "eslint . --ext .ts",
     "test": "jest --runInBand",
-    "release": "npm run clean && npm run build && npm run lint && npm run test && npm publish"
+    "release": "npm run clean && npm run build && npm run lint && npm run test && rimraf ./dist/tests && npm publish"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.2.1",
