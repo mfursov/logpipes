@@ -194,7 +194,7 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Jso
     };
     const jsonPipe: JsonPipe = logPipe as JsonPipe;
     jsonPipe.getLastMessageId = (): string => lastMessageId;
-    jsonPipe.setNextMessageId = messageId => nextMessageId = messageId;
+    jsonPipe.setNextMessageId = (messageId): void => {nextMessageId = messageId;};
     return jsonPipe;
 }
 
