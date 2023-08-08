@@ -217,6 +217,15 @@ describe('JsonPipe', () => {
             expect(id).toBe('my-value');
         });
 
+        it('handles case when messageIdPropertyProvider returns undefined', () => {
+            const pipe = createJsonPipe({messageIdPropertyProvider: () => undefined});
+            const result = pipe('log', 'Hello')[0] as Record<string, unknown>;
+            const id = result[DEFAULT_JSON_PIPE_OPTIONS.messageIdPropertyName] as string;
+            expect(id).toBeDefined();
+            const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            expect(UUID_REGEX.test(id)).toBe(true);
+        });
+
         it('returns correct lastMessageId', () => {
             const id1 = 'id1';
             const id2 = 'id2';
