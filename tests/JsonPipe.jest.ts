@@ -250,6 +250,16 @@ describe('JsonPipe', () => {
             pipe('log', 'Hello');
             expect(pipe.getLastMessageId()).toBe('');
         });
+
+        it('uses message id set by setMessageId', () => {
+            const pipe = createJsonPipe({messageIdPropertyProvider: () => 'provider-message-id'});
+            pipe.setNextMessageId('custom-message-id');
+            pipe('debug', 'Hello');
+            expect(pipe.getLastMessageId()).toBe('custom-message-id');
+
+            pipe('log', 'Hello');
+            expect(pipe.getLastMessageId()).toBe('provider-message-id');
+        });
     });
 });
 

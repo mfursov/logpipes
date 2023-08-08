@@ -36,6 +36,7 @@ export function createJsonStringifyPipe(inputOptions: Partial<JsonStringifyPipeO
     };
     const jsonStringifyPipe = logPipe as JsonStringifyPipe;
     jsonStringifyPipe.getLastMessageId = jsonPipe.getLastMessageId;
+    jsonStringifyPipe.setNextMessageId = jsonPipe.setNextMessageId;
     return jsonStringifyPipe;
 }
 

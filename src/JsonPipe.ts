@@ -113,6 +113,11 @@ export interface JsonPipe extends LogPipe {
      * If 'messageIdPropertyName' is null on the JsonPipe configuration (no ID is assigned), the value stays empty.
      */
     getLastMessageId: () => string;
+    /**
+     * Sets next emitted message id.
+     * When set the *messageIdPropertyProvider* won't be used to generate the next message id.
+     */
+    setNextMessageId: (messageId: string) => void;
 }
 
 /**
@@ -122,6 +127,7 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Jso
     const defaultJsonPipeOptions = getDefaultJsonPipeOptions();
     const options: JsonPipeOptions = {...defaultJsonPipeOptions, ...inputOptions};
     let lastMessageId = '';
+    let nextMessageId: string | undefined;
     const logPipe: LogPipe = (level, ...args) => {
         const resultJson: Record<string, unknown> = {};
         let message: string | undefined = undefined;
@@ -176,17 +182,19 @@ export function createJsonPipe(inputOptions: Partial<JsonPipeOptions> = {}): Jso
             resultJson[options.timestampPropertyName] = options.timestampPropertyFormatter(Date.now());
         }
         if (options.messageIdPropertyName) {
-            let messageId = options.messageIdPropertyProvider(level, ...args);
+            let messageId = nextMessageId || options.messageIdPropertyProvider(level, ...args);
             if (messageId === undefined) {
                 messageId = defaultJsonPipeOptions.messageIdPropertyProvider();
             }
             lastMessageId = messageId;
             resultJson[options.messageIdPropertyName] = lastMessageId;
+            nextMessageId = undefined;
         }
         return [resultJson];
     };
     const jsonPipe: JsonPipe = logPipe as JsonPipe;
     jsonPipe.getLastMessageId = (): string => lastMessageId;
+    jsonPipe.setNextMessageId = messageId => nextMessageId = messageId;
     return jsonPipe;
 }
 
