@@ -174,7 +174,7 @@ describe('ConsoleOverrides', () => {
                 tracedArgs = args;
                 return args;
             };
-            installConsoleOverride([logLevelSwitchPipe, logLevelTracePipe, () => []]);
+            installConsoleOverride([logLevelSwitchPipe, logLevelTracePipe, (): unknown[] => []]);
             for (const level of LOG_LEVELS) {
                 tracedLogLevel = undefined;
                 console[level]('Hello', 'World');
