@@ -106,7 +106,7 @@ export function getDefaultJsonPipeOptions()
     };
 }
 
-export interface JsonPipe extends LogPipe {
+export interface JsonPipe extends LogPipe<unknown[]> {
     /**
      * Returns the last message ID assigned by the pipe.
      * If no messages were emitted yet contains an empty string.

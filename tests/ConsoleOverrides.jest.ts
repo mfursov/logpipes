@@ -20,22 +20,22 @@ describe('ConsoleOverrides', () => {
     });
 
     it('should install and uninstall log pipes to console methods', () => {
-        let lastCalledPipeType: LogLevel | undefined = undefined;
+        let lastCalledPipeLevel: LogLevel | undefined = undefined;
         let lastCalledPipeArg: unknown[] | undefined = undefined;
-        const pipe: LogPipe = (type, ...args) => {
-            lastCalledPipeType = type;
+        const pipe: LogPipe = (level, ...args) => {
+            lastCalledPipeLevel = level;
             lastCalledPipeArg = args;
             return [];
         };
         const originalConsole: Record<LogLevel, unknown> = {...console};
         installConsoleOverrides(pipe);
-        for (const type of LOG_LEVELS) {
-            expect(console[type]).not.toBe(originalConsole[type]);
+        for (const level of LOG_LEVELS) {
+            expect(console[level]).not.toBe(originalConsole[level]);
         }
-        for (const type of LOG_LEVELS) {
-            const arg = `Hello ${type}`;
-            console[type](arg);
-            expect(lastCalledPipeType).toBe(type);
+        for (const level of LOG_LEVELS) {
+            const arg = `Hello ${level}`;
+            console[level](arg);
+            expect(lastCalledPipeLevel).toBe(level);
             expect(lastCalledPipeArg).toEqual([arg]);
         }
         uninstallConsoleOverride(pipe);
@@ -162,9 +162,26 @@ describe('ConsoleOverrides', () => {
             installConsoleOverride(pipe);
             expect(installCount).toBe(2);
             expect(uninstallCount).toBe(1);
-
         });
 
+        it('supports log level switch', () => {
+            const switchedLogLevel: LogLevel = 'debug';
+            let tracedLogLevel: LogLevel | undefined;
+            let tracedArgs: unknown[] | undefined;
+            const logLevelSwitchPipe: LogPipe = (_, ...args) => ({level: switchedLogLevel, args});
+            const logLevelTracePipe: LogPipe = (level, ...args) => {
+                tracedLogLevel = level;
+                tracedArgs = args;
+                return args;
+            };
+            installConsoleOverride([logLevelSwitchPipe, logLevelTracePipe, () => []]);
+            for (const level of LOG_LEVELS) {
+                tracedLogLevel = undefined;
+                console[level]('Hello', 'World');
+                expect(tracedLogLevel).toBe(switchedLogLevel);
+                expect(tracedArgs).toEqual(['Hello', 'World']);
+            }
+        });
     });
 
     describe('getOriginalConsoleMethods', () => {

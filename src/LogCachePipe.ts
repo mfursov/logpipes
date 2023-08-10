@@ -6,7 +6,7 @@ import {simplifyJson} from './JsonSimplifier';
  *  notifies about cache overflow using 'onCacheSizeReached'
  *  and provides access to the cache.
  */
-export interface LogCachePipe extends LogPipe {
+export interface LogCachePipe extends LogPipe<unknown[]> {
     /** Returns a list of all cached messages. */
     getMessages(): Array<LogCachePipeMessage>;
 

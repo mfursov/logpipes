@@ -1,8 +1,16 @@
 export const LOG_LEVELS = ['debug', 'error', 'info', 'log', 'trace', 'warn'] as const;
 export type LogLevel = typeof LOG_LEVELS[number];
 
-export interface LogPipe {
-    (level: LogLevel, ...args: any[]): unknown[];
+export type LogPipeResult = unknown[] | { level: LogLevel, args: unknown[] };
+
+export interface LogPipe<ResultType extends LogPipeResult = LogPipeResult> {
+    /**
+     * LogPipe is a functional interface that accepts a LogLevel and
+     * a list of arguments and transforms it into another list of arguments.
+     * The return is an array of transformed arguments.
+     * If the log pipe needs to change the log level, it should return an object with an updated `level` field.
+     */
+    (level: LogLevel, ...args: any[]): ResultType;
 
     onInstall?: () => void;
     onUninstall?: () => void;
@@ -100,14 +108,25 @@ function initializeConsoleOverrideContextOnFirstUse(): void {
     for (const level of LOG_LEVELS) {
         originalConsole[level] = console[level] as ConsoleLogFn;
         console[level] = (...args: any[]): void => {
+            let resultLevel = level;
             let resultArgs = args;
             for (const pipe of consoleOverrides) {
-                resultArgs = pipe(level, ...resultArgs);
-                if ((resultArgs?.length ?? 0) === 0) {
+                const logPipeResult = pipe(resultLevel, ...resultArgs);
+                const isSuppressed = !logPipeResult
+                    || (Array.isArray(logPipeResult)
+                        ? (logPipeResult?.length ?? 0) === 0
+                        : (logPipeResult.args?.length ?? 0) === 0);
+                if (isSuppressed) {
                     return; // Log is suppressed.
                 }
+                if (Array.isArray(logPipeResult)) {
+                    resultArgs = logPipeResult;
+                    continue;
+                }
+                resultLevel = logPipeResult.level;
+                resultArgs = logPipeResult.args;
             }
-            originalConsole[level](...resultArgs);
+            originalConsole[resultLevel](...resultArgs);
         };
     }
 }
