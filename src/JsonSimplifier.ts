@@ -162,8 +162,9 @@ export function simplifyValue(value: unknown, options: Partial<SimplifyValueOpti
         case 'undefined':
         case 'boolean':
         case 'string':
-        case 'bigint':
             return value;
+        case 'bigint':
+            return `BigInt(${value.toString()})`;
         case 'number':
             if (isNaN(value)) {
                 return 'NaN';

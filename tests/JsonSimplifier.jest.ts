@@ -22,6 +22,12 @@ describe('JsonSimplifier', () => {
             expect(result).toEqual({'foo': DEFAULT_JSON_SIMPLIFIER_OPTIONS.functionValue});
         });
 
+        it('correctly handles bigint types', () => {
+            const obj = {'val': BigInt(1)};
+            const result = simplifyJson(obj);
+            expect(result).toEqual({'val': 'BigInt(1)'});
+        });
+
         it('correctly handles undefined values', () => {
             const obj = {v: undefined};
             const result = simplifyJson(obj);
@@ -197,7 +203,7 @@ describe('JsonSimplifier', () => {
         it('BigInt object parameter processed as a space separated string', () => {
             const bigIntAsString = '1000000000000000000000000000000000000000000';
             const result = simplifyValue(BigInt(bigIntAsString));
-            expect(result).toBe(BigInt(bigIntAsString));
+            expect(result).toBe(`BigInt(${bigIntAsString})`);
         });
 
         it('Date object parameter processed as an ISO formatted string', () => {
