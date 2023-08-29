@@ -50,6 +50,13 @@ LogLevelFilterPipe excludes configured log levels from the final output.
 See [LogLevelFilterPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogLevelFilterPipe.ts) and
 related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests/LogLevelFilterPipe.jest.ts).
 
+### LogMessageFilterPipe
+
+LogMessageFilterPipe excludes configured all log events with a specified tokens in the message.
+
+See [LogMessageFilterPipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogMessageFilterPipe.ts) and
+related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests/LogMessageFilterPipe.jest.ts).
+
 ### LogCachePipe
 
 LogCachePipe caches console messages and provides access to the cache.
