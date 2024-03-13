@@ -66,6 +66,10 @@ This pipe can be used to dump or sideload all console log messages.
 See [LogCachePipeOptions](https://github.com/mfursov/logpipes/tree/master/src/LogCachePipe.ts) and
 related [unit tests](https://github.com/mfursov/logpipes/tree/master/tests/LogCachePipe.jest.ts).
 
+### DateTimePipe
+
+Adds a timestamp as the first parameter to every console message.
+
 ### NoopPipe
 
 NoopPipe does nothing and proxies all parameters to the next pipe with no changes.
