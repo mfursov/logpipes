@@ -1,4 +1,5 @@
 export * from './ConsoleOverrides';
+export * from './DateTimePipe';
 export * from './JsonPipe';
 export * from './JsonSimplifier';
 export * from './JsonStringifyPipe';
