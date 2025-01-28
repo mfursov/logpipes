@@ -22,4 +22,16 @@ describe('LogLevelFilterPipe', () => {
             expect(resultArgs).toEqual(expectedResult);
         }
     });
+
+    it('filters messages when a log level is provided as a function', () => {
+        const excludedLevels: Array<LogLevel> = ['debug', 'trace'];
+        const excludedLogLevels: () => Array<LogLevel> = () => excludedLevels;
+        const pipe = createLogLevelFilterPipe({excludedLogLevels});
+        const args = [1, true, {}, ''];
+        for (const level of LOG_LEVELS) {
+            const resultArgs = pipe(level, ...args);
+            const expectedResult = excludedLevels.includes(level) ? [] : args;
+            expect(resultArgs).toEqual(expectedResult);
+        }
+    });
 });
