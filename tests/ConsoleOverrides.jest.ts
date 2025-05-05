@@ -44,14 +44,15 @@ describe('ConsoleOverrides', () => {
     });
 
     it('calls pipe in the expected order', () => {
-        const pipe1: LogPipe = (_, ...args) => [...args].map(arg => `A${arg}`);
-        const pipe2: LogPipe = (_, ...args) => [...args].map(arg => `B${arg}`);
+        const pipe1: LogPipe<string[]> = (_, ...args) => [...args].map(arg => `A${arg}`);
+        const pipe2: LogPipe<string[]> = (_, ...args) => [...args].map(arg => `B${arg}`);
         let checkIsDone = false;
         const checkingPipe: LogPipe = (level, ...args) => {
             expect(level).toBe('info');
             expect(args.length).toBe(3);
             for (const arg of args) {
-                expect(arg.substring(0, 2)).toBe('BA');
+                expect(typeof arg === 'string');
+                expect((arg as string).substring(0, 2)).toBe('BA');
             }
             checkIsDone = true;
             return [];
@@ -82,7 +83,7 @@ describe('ConsoleOverrides', () => {
         const pipe1: LogPipe = (_, ...args) => [...args].map(arg => `A${arg}`);
         const pipe2: LogPipe = (_, ...args) => [...args].map(arg => `B${arg}`);
         const pipe3: LogPipe = (_, ...args) => [...args].map(arg => `C${arg}`);
-        let message = '';
+        let message: unknown;
         const checkingPipe: LogPipe = (level, ...args) => {
             expect(level).toBe('warn');
             expect(args.length).toBe(1);
@@ -122,8 +123,12 @@ describe('ConsoleOverrides', () => {
         let installCount = 0;
         let uninstallCount = 0;
         const pipe: LogPipe = () => [];
-        pipe.onInstall = (): void => {installCount++;};
-        pipe.onUninstall = (): void => {uninstallCount++;};
+        pipe.onInstall = (): void => {
+            installCount++;
+        };
+        pipe.onUninstall = (): void => {
+            uninstallCount++;
+        };
 
         beforeEach(() => {
             installCount = 0;
@@ -200,7 +205,8 @@ describe('ConsoleOverrides', () => {
         });
 
         it('returns original console methods if pipe is installed', () => {
-            installConsoleOverride((_, args) => args);
+            const pipe: LogPipe = (_, ...args) => args;
+            installConsoleOverride(pipe);
             for (const level of LOG_LEVELS) {
                 expect(console[level]).not.toBe(originalMethods[level]);
             }

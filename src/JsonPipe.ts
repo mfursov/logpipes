@@ -221,6 +221,6 @@ export function generateUuidSimple(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const randomPart = (datePart + Math.floor(Math.random() * 16)) % 16;
         datePart = Math.floor(datePart / 16);
-        return (c == 'x' ? randomPart : (randomPart & 0x3 | 0x8)).toString(16);
+        return (c === 'x' ? randomPart : (randomPart & 0x3 | 0x8)).toString(16);
     });
 }

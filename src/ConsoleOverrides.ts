@@ -10,7 +10,7 @@ export interface LogPipe<ResultType extends LogPipeResult = LogPipeResult> {
      * The return is an array of transformed arguments.
      * If the log pipe needs to change the log level, it should return an object with an updated `level` field.
      */
-    (level: LogLevel, ...args: any[]): ResultType;
+    (level: LogLevel, ...args: unknown[]): ResultType;
 
     onInstall?: () => void;
     onUninstall?: () => void;
@@ -18,8 +18,9 @@ export interface LogPipe<ResultType extends LogPipeResult = LogPipeResult> {
 
 const consoleOverrides: Array<LogPipe> = [];
 
-type ConsoleLogFn = (...args: any[]) => void;
-const noop: ConsoleLogFn = () => {/* do nothing. */};
+type ConsoleLogFn = (...args: unknown[]) => void;
+const noop: ConsoleLogFn = () => {/* do nothing. */
+};
 
 const originalConsole: Record<LogLevel, ConsoleLogFn> = {
     debug: noop,
@@ -47,8 +48,8 @@ export function installConsoleOverrides(...pipes: Array<LogPipe>): void {
     initializeConsoleOverrideContextOnFirstUse();
     for (const pipe of pipes) {
         // Call pipe.onInstall() when pipe is installed first time.
-        if (!consoleOverrides.includes(pipe)) {
-            pipe.onInstall && pipe.onInstall();
+        if (!consoleOverrides.includes(pipe) && pipe.onInstall) {
+            pipe.onInstall();
         }
         consoleOverrides.push(pipe);
     }
@@ -66,8 +67,8 @@ export function uninstallConsoleOverrides(...pipes: Array<LogPipe>): void {
         for (let pipeIndex = consoleOverrides.indexOf(pipe); pipeIndex >= 0; pipeIndex = consoleOverrides.indexOf(pipe)) {
             const removedPipe = consoleOverrides.splice(pipeIndex, 1)[0];
             // Call pipe.onUninstall() when the pipe is not present in the overrides anymore.
-            if (!consoleOverrides.includes(removedPipe)) {
-                removedPipe?.onUninstall && removedPipe.onUninstall();
+            if (!consoleOverrides.includes(removedPipe) && removedPipe.onUninstall) {
+                removedPipe.onUninstall();
             }
         }
     }
@@ -107,7 +108,7 @@ function initializeConsoleOverrideContextOnFirstUse(): void {
     }
     for (const level of LOG_LEVELS) {
         originalConsole[level] = console[level] as ConsoleLogFn;
-        console[level] = (...args: any[]): void => {
+        console[level] = (...args: unknown[]): void => {
             let resultLevel = level;
             let resultArgs = args;
             for (const pipe of consoleOverrides) {
